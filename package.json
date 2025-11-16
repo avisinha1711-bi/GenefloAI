@@ -1,7 +1,7 @@
 {
   "name": "genefloai-backend",
   "version": "1.0.0",
-  "description": "Backend for GenefloAI Genetic Translator with intelligent chatbot",
+  "description": "Backend server for GenefloAI Genetic Translator chatbot",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,14 +10,13 @@
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2",
-    "mongoose": "^7.5.0",
-    "uuid": "^9.0.0",
-    "natural": "^6.3.0",
-    "compression": "^1.7.4",
-    "helmet": "^7.0.0"
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
+    "nodemon": "^3.0.0"
+  },
+  "keywords": ["genetics", "bioinformatics", "dna", "rna", "protein"],
+  "author": "GenefloAI Team",
+  "license": "MIT"
 }
