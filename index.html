@@ -48,13 +48,13 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.08; /* Increased from 0.03 */
+            opacity: 0.08;
         }
         
         .network-dot {
             position: absolute;
-            width: 3px; /* Increased from 2px */
-            height: 3px; /* Increased from 2px */
+            width: 3px;
+            height: 3px;
             background: white;
             border-radius: 50%;
         }
@@ -624,7 +624,7 @@
             display: none;
         }
 
-        /* Chatbot Styles - Improved with workflow and interactive mode */
+        /* Enhanced Chatbot Styles */
         .chatbot-container {
             position: fixed;
             bottom: 30px;
@@ -772,96 +772,134 @@
             background: rgba(37, 99, 235, 0.2);
         }
 
-        /* Workflow and Interactive Mode Styles */
-        .workflow-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .workflow-step {
-            background: rgba(37, 99, 235, 0.15);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+        .typing-indicator {
             display: flex;
             align-items: center;
             gap: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
-        .workflow-step:hover {
-            background: rgba(37, 99, 235, 0.25);
+        .typing-dots {
+            display: flex;
+            gap: 2px;
         }
 
-        .workflow-step.active {
-            background: var(--primary);
-            color: white;
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: typing 1.4s infinite ease-in-out;
         }
 
-        .interactive-mode {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 12px;
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+
+        /* Peptide Analysis Section */
+        .peptide-analysis {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(26, 34, 53, 0.7);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .peptide-analysis h4 {
+            color: var(--text-lighter);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .peptide-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .peptide-stat {
+            background: rgba(45, 55, 72, 0.5);
+            padding: 15px;
             border-radius: 8px;
-            margin-top: 10px;
+            text-align: center;
+            border: 1px solid var(--border);
         }
 
-        .interactive-mode h4 {
-            color: var(--success);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .peptide-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            margin-bottom: 5px;
         }
 
-        .interactive-options {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .interactive-option {
-            background: rgba(16, 185, 129, 0.1);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .interactive-option:hover {
-            background: rgba(16, 185, 129, 0.2);
-        }
-
-        .workflow-progress {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            font-size: 0.8rem;
+        .peptide-stat-label {
+            font-size: 0.85rem;
             color: var(--text-muted);
         }
 
-        .progress-bar {
-            flex: 1;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
+        .amino-acid-composition {
+            margin-top: 20px;
         }
 
-        .progress-fill {
-            height: 100%;
+        .amino-acid-composition h5 {
+            color: var(--text-lighter);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .amino-acid-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .amino-acid-item {
+            background: rgba(45, 55, 72, 0.5);
+            padding: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+
+        .amino-acid-name {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .amino-acid-count {
             background: var(--primary);
-            transition: width 0.3s;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
         @media (max-width: 768px) {
             .chatbot-window {
                 width: 90vw;
                 right: 5vw;
+            }
+            
+            .peptide-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .amino-acid-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -963,6 +1001,37 @@
                     <div class="molecular-weight" id="molecular-weight">Molecular Weight: -</div>
                 </div>
             </div>
+
+            <!-- Peptide Analysis Section -->
+            <div class="peptide-analysis" id="peptide-analysis" style="display: none;">
+                <h4><i class="fas fa-chart-bar"></i> Peptide Analysis</h4>
+                
+                <div class="peptide-stats">
+                    <div class="peptide-stat">
+                        <div class="peptide-stat-value" id="peptide-length">0</div>
+                        <div class="peptide-stat-label">Amino Acids</div>
+                    </div>
+                    <div class="peptide-stat">
+                        <div class="peptide-stat-value" id="peptide-weight">0</div>
+                        <div class="peptide-stat-label">Molecular Weight (Da)</div>
+                    </div>
+                    <div class="peptide-stat">
+                        <div class="peptide-stat-value" id="peptide-charge">0</div>
+                        <div class="peptide-stat-label">Theoretical pI</div>
+                    </div>
+                    <div class="peptide-stat">
+                        <div class="peptide-stat-value" id="peptide-hydrophobicity">0</div>
+                        <div class="peptide-stat-label">Hydrophobicity Index</div>
+                    </div>
+                </div>
+
+                <div class="amino-acid-composition">
+                    <h5>Amino Acid Composition</h5>
+                    <div class="amino-acid-grid" id="amino-acid-composition">
+                        <!-- Amino acid composition will be populated here -->
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="visualization">
@@ -1046,7 +1115,7 @@
         </footer>
     </div>
 
-    <!-- Enhanced Chatbot with Workflow and Interactive Mode -->
+    <!-- Enhanced Chatbot -->
     <div class="chatbot-container">
         <div class="chatbot-toggle" id="chatbot-toggle">
             <i class="fas fa-robot"></i>
@@ -1086,7 +1155,7 @@
             const lines = [];
             
             // Create more dots for better visibility
-            for (let i = 0; i < 60; i++) { // Increased from 40
+            for (let i = 0; i < 60; i++) {
                 const dot = document.createElement('div');
                 dot.className = 'network-dot';
                 dot.style.left = `${Math.random() * 100}%`;
@@ -1109,7 +1178,7 @@
                     const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
                     
                     // Connect more dots for better visibility
-                    if (distance < 25) { // Increased from 20
+                    if (distance < 25) {
                         const line = document.createElement('div');
                         line.className = 'network-line';
                         
@@ -1128,7 +1197,7 @@
             }
         }
 
-        // Enhanced MolGenoBot functionality with Workflow and Interactive Mode
+        // Enhanced MolGenoBot with Backend Integration
         function initializeChatbot() {
             const chatbotToggle = document.getElementById('chatbot-toggle');
             const chatbotWindow = document.getElementById('chatbot-window');
@@ -1137,54 +1206,23 @@
             const chatbotInput = document.getElementById('chatbot-input');
             const chatbotSend = document.getElementById('chatbot-send');
             
-            // Workflow state
-            let currentWorkflow = null;
-            let workflowStep = 0;
-            let workflowData = {};
+            // Backend API URL
+            const BACKEND_URL = 'http://localhost:3000/api';
             
-            // Available workflows
-            const workflows = {
-                dnaReplication: {
-                    name: "DNA Replication",
-                    steps: [
-                        "Initiation: Origin of replication",
-                        "Unwinding: Helicase and SSB proteins",
-                        "Primer synthesis: Primase activity",
-                        "Elongation: DNA polymerase",
-                        "Proofreading: Exonuclease activity",
-                        "Ligation: DNA ligase"
-                    ],
-                    description: "Follow the step-by-step process of DNA replication"
-                },
-                proteinSynthesis: {
-                    name: "Protein Synthesis",
-                    steps: [
-                        "Transcription: DNA to mRNA",
-                        "RNA processing: Capping and splicing",
-                        "mRNA export: Nucleus to cytoplasm",
-                        "Translation: Ribosome assembly",
-                        "Elongation: Polypeptide chain growth",
-                        "Termination: Release factor binding"
-                    ],
-                    description: "Explore the complete protein synthesis pathway"
-                },
-                geneRegulation: {
-                    name: "Gene Regulation",
-                    steps: [
-                        "Promoter recognition",
-                        "Transcription factor binding",
-                        "Chromatin remodeling",
-                        "Transcription initiation",
-                        "Elongation control",
-                        "Termination regulation"
-                    ],
-                    description: "Understand how genes are regulated in cells"
-                }
+            // User session
+            let userSession = {
+                id: localStorage.getItem('user_id') || generateUserId(),
+                knowledgeLevel: parseInt(localStorage.getItem('knowledge_level')) || 0,
+                interests: JSON.parse(localStorage.getItem('user_interests')) || [],
+                conversationHistory: JSON.parse(localStorage.getItem('conversation_history')) || []
             };
             
             // Toggle chatbot window
             chatbotToggle.addEventListener('click', () => {
                 chatbotWindow.classList.toggle('active');
+                if (chatbotWindow.classList.contains('active')) {
+                    chatbotInput.focus();
+                }
             });
             
             // Close chatbot window
@@ -1193,7 +1231,7 @@
             });
             
             // Send message
-            function sendMessage() {
+            async function sendMessage() {
                 const message = chatbotInput.value.trim();
                 if (!message) return;
                 
@@ -1202,30 +1240,42 @@
                 chatbotInput.value = '';
                 
                 // Show typing indicator
-                const typingIndicator = document.createElement('div');
-                typingIndicator.classList.add('message', 'bot');
-                typingIndicator.innerHTML = '<div class="loading" style="display:inline-block; margin-right:10px;"></div> Thinking...';
-                chatbotMessages.appendChild(typingIndicator);
-                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                showTypingIndicator();
                 
-                // Generate bot response
-                setTimeout(() => {
-                    chatbotMessages.removeChild(typingIndicator);
+                try {
+                    // Send message to backend
+                    const response = await fetch(`${BACKEND_URL}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            userSession: userSession
+                        })
+                    });
                     
-                    // Check if user wants to start a workflow
-                    if (message.toLowerCase().includes('workflow') || message.toLowerCase().includes('guide me') || message.toLowerCase().includes('step by step')) {
-                        startWorkflowSelection(message);
-                    } 
-                    // Check if user is in interactive mode
-                    else if (currentWorkflow) {
-                        handleWorkflowInteraction(message);
+                    const data = await response.json();
+                    
+                    // Remove typing indicator
+                    removeTypingIndicator();
+                    
+                    // Add bot response
+                    addMessage(data.response, 'bot');
+                    
+                    // Update user session
+                    if (data.updatedSession) {
+                        userSession = { ...userSession, ...data.updatedSession };
+                        saveUserSession();
                     }
-                    // Regular response
-                    else {
-                        const response = generateResponse(message);
-                        addMessage(response, 'bot');
-                    }
-                }, 1500);
+                    
+                } catch (error) {
+                    removeTypingIndicator();
+                    addMessage("I'm having trouble connecting right now. Let me provide a basic response.", 'bot');
+                    // Fallback response
+                    const fallbackResponse = generateFallbackResponse(message);
+                    addMessage(fallbackResponse, 'bot');
+                }
             }
             
             // Send message on button click
@@ -1245,448 +1295,72 @@
                 messageElement.innerHTML = text;
                 chatbotMessages.appendChild(messageElement);
                 chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-            }
-            
-            // Start workflow selection
-            function startWorkflowSelection(message) {
-                let response = "I can guide you through several molecular genetics workflows. Which one would you like to explore?<br><br>";
                 
-                Object.keys(workflows).forEach(key => {
-                    const workflow = workflows[key];
-                    response += `<div class="workflow-step" data-workflow="${key}">
-                        <i class="fas fa-play-circle"></i> ${workflow.name}
-                    </div>`;
-                });
-                
-                response += `<br>Or you can ask me specific questions about any topic!`;
-                
-                addMessage(response, 'bot');
-                
-                // Add event listeners to workflow steps
-                setTimeout(() => {
-                    document.querySelectorAll('.workflow-step').forEach(step => {
-                        step.addEventListener('click', function() {
-                            const workflowKey = this.getAttribute('data-workflow');
-                            startWorkflow(workflowKey);
-                        });
+                // Save to conversation history
+                if (sender === 'user' || sender === 'bot') {
+                    userSession.conversationHistory.push({
+                        sender: sender,
+                        message: text,
+                        timestamp: new Date().toISOString()
                     });
-                }, 100);
+                    saveUserSession();
+                }
             }
             
-            // Start a specific workflow
-            function startWorkflow(workflowKey) {
-                currentWorkflow = workflowKey;
-                workflowStep = 0;
-                workflowData = {};
-                
-                const workflow = workflows[workflowKey];
-                
-                let response = `Starting <strong>${workflow.name}</strong> workflow:<br>`;
-                response += `<em>${workflow.description}</em><br><br>`;
-                response += `<div class="workflow-progress">
-                    <span>Step ${workflowStep + 1} of ${workflow.steps.length}</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${(workflowStep / workflow.steps.length) * 100}%"></div>
+            // Show typing indicator
+            function showTypingIndicator() {
+                const typingElement = document.createElement('div');
+                typingElement.classList.add('message', 'bot', 'typing-indicator');
+                typingElement.id = 'typing-indicator';
+                typingElement.innerHTML = `
+                    MolGenoBot is thinking
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
                     </div>
-                </div>`;
-                response += `<div class="interactive-mode">
-                    <h4><i class="fas fa-microscope"></i> ${workflow.steps[workflowStep]}</h4>
-                    <div class="interactive-options">
-                        <div class="interactive-option" data-action="explain">Explain this step</div>
-                        <div class="interactive-option" data-action="example">Show me an example</div>
-                        <div class="interactive-option" data-action="next">Continue to next step</div>
-                    </div>
-                </div>`;
-                
-                addMessage(response, 'bot');
-                
-                // Add event listeners to interactive options
-                setTimeout(() => {
-                    document.querySelectorAll('.interactive-option').forEach(option => {
-                        option.addEventListener('click', function() {
-                            const action = this.getAttribute('data-action');
-                            handleInteractiveAction(action);
-                        });
-                    });
-                }, 100);
+                `;
+                chatbotMessages.appendChild(typingElement);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
             }
             
-            // Handle interactive actions in workflow
-            function handleInteractiveAction(action) {
-                const workflow = workflows[currentWorkflow];
-                
-                if (action === 'explain') {
-                    const explanation = getStepExplanation(currentWorkflow, workflowStep);
-                    addMessage(explanation, 'bot');
-                } 
-                else if (action === 'example') {
-                    const example = getStepExample(currentWorkflow, workflowStep);
-                    addMessage(example, 'bot');
-                }
-                else if (action === 'next') {
-                    workflowStep++;
-                    
-                    if (workflowStep < workflow.steps.length) {
-                        let response = `<div class="workflow-progress">
-                            <span>Step ${workflowStep + 1} of ${workflow.steps.length}</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${(workflowStep / workflow.steps.length) * 100}%"></div>
-                            </div>
-                        </div>`;
-                        response += `<div class="interactive-mode">
-                            <h4><i class="fas fa-microscope"></i> ${workflow.steps[workflowStep]}</h4>
-                            <div class="interactive-options">
-                                <div class="interactive-option" data-action="explain">Explain this step</div>
-                                <div class="interactive-option" data-action="example">Show me an example</div>
-                                <div class="interactive-option" data-action="next">Continue to next step</div>
-                            </div>
-                        </div>`;
-                        
-                        addMessage(response, 'bot');
-                        
-                        // Re-add event listeners
-                        setTimeout(() => {
-                            document.querySelectorAll('.interactive-option').forEach(option => {
-                                option.addEventListener('click', function() {
-                                    const action = this.getAttribute('data-action');
-                                    handleInteractiveAction(action);
-                                });
-                            });
-                        }, 100);
-                    } else {
-                        // Workflow completed
-                        const completionMessage = `<strong>Workflow completed!</strong><br><br>
-                        You've successfully completed the ${workflow.name} workflow. 
-                        Would you like to:<br><br>
-                        <div class="interactive-options">
-                            <div class="interactive-option" data-action="restart">Restart this workflow</div>
-                            <div class="interactive-option" data-action="new">Start a different workflow</div>
-                            <div class="interactive-option" data-action="quiz">Take a quick quiz</div>
-                        </div>`;
-                        
-                        addMessage(completionMessage, 'bot');
-                        
-                        currentWorkflow = null;
-                        
-                        // Re-add event listeners
-                        setTimeout(() => {
-                            document.querySelectorAll('.interactive-option').forEach(option => {
-                                option.addEventListener('click', function() {
-                                    const action = this.getAttribute('data-action');
-                                    if (action === 'restart') {
-                                        startWorkflow(currentWorkflow);
-                                    } else if (action === 'new') {
-                                        startWorkflowSelection('new workflow');
-                                    } else if (action === 'quiz') {
-                                        startQuiz(workflow.name);
-                                    }
-                                });
-                            });
-                        }, 100);
-                    }
+            // Remove typing indicator
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
                 }
             }
             
-            // Handle workflow interaction
-            function handleWorkflowInteraction(message) {
-                // For now, just provide a generic response
-                const response = `I see you're following the ${workflows[currentWorkflow].name} workflow. 
-                You can use the interactive options to explore each step in detail, or type "exit workflow" to return to regular chat.`;
-                addMessage(response, 'bot');
-                
-                if (message.toLowerCase().includes('exit workflow')) {
-                    currentWorkflow = null;
-                    addMessage("Exited workflow mode. How can I help you now?", 'bot');
-                }
-            }
-            
-            // Get step explanation
-            function getStepExplanation(workflowKey, stepIndex) {
-                const explanations = {
-                    dnaReplication: [
-                        "Initiation begins at specific DNA sequences called origins of replication. In E. coli, this is the oriC region containing repeated sequences that initiator proteins recognize and bind to.",
-                        "Helicase enzymes unwind the DNA double helix, breaking hydrogen bonds between base pairs. Single-strand binding proteins stabilize the separated strands, preventing them from reannealing.",
-                        "Primase synthesizes short RNA primers (10-12 nucleotides) that provide a 3' OH group for DNA polymerase to begin synthesis. These primers are complementary to the template strand.",
-                        "DNA polymerase III adds nucleotides to the 3' end of the primer, synthesizing DNA in the 5'→3' direction. The leading strand is synthesized continuously, while the lagging strand is synthesized in Okazaki fragments.",
-                        "DNA polymerase I removes RNA primers and replaces them with DNA. The proofreading function (3'→5' exonuclease activity) corrects errors during synthesis, maintaining high fidelity.",
-                        "DNA ligase joins the Okazaki fragments on the lagging strand by catalyzing phosphodiester bond formation. This completes the synthesis of two identical DNA molecules."
-                    ],
-                    proteinSynthesis: [
-                        "Transcription begins when RNA polymerase binds to promoter regions on DNA. The enzyme unwinds the DNA and synthesizes mRNA complementary to the template strand.",
-                        "In eukaryotes, the primary transcript undergoes processing: 5' capping with 7-methylguanosine, 3' polyadenylation, and splicing to remove introns and join exons.",
-                        "Processed mRNA is exported from the nucleus through nuclear pore complexes. This requires specific export factors that recognize the mature mRNA structure.",
-                        "The small ribosomal subunit binds to the 5' end of mRNA and scans until it finds the AUG start codon. The initiator tRNA carrying methionine binds, followed by the large subunit.",
-                        "The ribosome moves along mRNA, matching tRNA anticodons to mRNA codons. Peptide bonds form between amino acids, extending the polypeptide chain in the N→C direction.",
-                        "When a stop codon (UAA, UAG, or UGA) enters the A site, release factors bind, causing hydrolysis of the polypeptide from the tRNA and dissociation of the ribosomal subunits."
-                    ],
-                    geneRegulation: [
-                        "RNA polymerase recognizes promoter sequences (TATA box in eukaryotes, -10 and -35 regions in bacteria). Transcription factors help position the polymerase correctly.",
-                        "Specific transcription factors bind to enhancer or silencer elements, either activating or repressing transcription. These can be tissue-specific or responsive to signals.",
-                        "In eukaryotes, chromatin remodeling complexes alter nucleosome positioning, making DNA more or less accessible. Histone modifications (acetylation, methylation) regulate this process.",
-                        "After initiation, the polymerase clears the promoter and begins elongation. P-TEFb and other factors regulate the transition and rate of transcription.",
-                        "Various factors can pause or accelerate the elongating polymerase. NELF and DSIF cause pausing, while TFIIS can rescue backtracked polymerases.",
-                        "Termination signals (poly-A signals in eukaryotes, Rho-dependent or independent in bacteria) trigger release of the transcript and polymerase from DNA."
-                    ]
-                };
-                
-                return explanations[workflowKey][stepIndex];
-            }
-            
-            // Get step example
-            function getStepExample(workflowKey, stepIndex) {
-                const examples = {
-                    dnaReplication: [
-                        "Example: In E. coli, DnaA proteins bind to 9-mer repeats in the oriC region, causing DNA bending and strand separation at the 13-mer repeats.",
-                        "Example: Helicase (DnaB in E. coli) uses ATP hydrolysis to move along DNA at ~1000 nucleotides/second, creating replication forks.",
-                        "Example: Primase synthesizes RNA primers ~10 nucleotides long. On the lagging strand, a new primer is needed for each Okazaki fragment.",
-                        "Example: DNA polymerase III adds nucleotides at ~1000 bases/second with high accuracy (error rate ~1 in 10^7). The sliding clamp (β subunit) keeps it attached.",
-                        "Example: DNA polymerase I removes primers with its 5'→3' exonuclease activity and fills gaps with its polymerase activity.",
-                        "Example: DNA ligase uses ATP (in eukaryotes) or NAD+ (in bacteria) to activate the 5' phosphate, enabling bond formation between fragments."
-                    ],
-                    proteinSynthesis: [
-                        "Example: In bacteria, σ factor helps RNA polymerase recognize the -10 (TATAAT) and -35 (TTGACA) promoter sequences.",
-                        "Example: The SRP (signal recognition particle) binds to signal sequences on secreted proteins during translation, pausing synthesis until docking with the ER.",
-                        "Example: Nuclear export receptor TAP/p15 binds to mRNA and facilitates transport through nuclear pores into the cytoplasm.",
-                        "Example: In eukaryotes, eIF2 brings the initiator tRNA to the P site, while eIF4 factors help recruit the ribosome to the 5' cap.",
-                        "Example: EF-Tu in bacteria delivers aminoacyl-tRNA to the A site, with GTP hydrolysis ensuring correct codon-anticodon pairing.",
-                        "Example: RF1 recognizes UAA and UAG stop codons, while RF2 recognizes UAA and UGA. Both stimulate peptidyl transferase to release the polypeptide."
-                    ],
-                    geneRegulation: [
-                        "Example: The lac operon promoter has -10 and -35 regions where RNA polymerase binds, with CAP-cAMP complex enhancing binding when glucose is low.",
-                        "Example: In the lac operon, the lac repressor binds to the operator, blocking transcription when lactose is absent.",
-                        "Example: Histone acetyltransferases (HATs) add acetyl groups to lysines, neutralizing positive charge and loosening DNA-histone interactions.",
-                        "Example: TFIIH phosphorylates the CTD of RNA polymerase II, facilitating promoter clearance and transition to elongation.",
-                        "Example: In the HIV genome, Tat protein binds TAR RNA element and recruits P-TEFb to overcome transcriptional pausing.",
-                        "Example: Rho factor in bacteria uses ATP hydrolysis to translocate along mRNA and dissociate the transcription complex at specific sites."
-                    ]
-                };
-                
-                return examples[workflowKey][stepIndex];
-            }
-            
-            // Start a quiz
-            function startQuiz(topic) {
-                const quizzes = {
-                    "DNA Replication": [
-                        {
-                            question: "Which enzyme unwinds the DNA double helix during replication?",
-                            options: ["DNA polymerase", "Helicase", "Ligase", "Primase"],
-                            answer: 1
-                        },
-                        {
-                            question: "What is the function of single-strand binding proteins?",
-                            options: ["Synthesize RNA primers", "Prevent reannealing of DNA strands", "Join Okazaki fragments", "Proofread DNA synthesis"],
-                            answer: 1
-                        },
-                        {
-                            question: "Which strand is synthesized continuously?",
-                            options: ["Lagging strand", "Template strand", "Leading strand", "Coding strand"],
-                            answer: 2
-                        }
-                    ],
-                    "Protein Synthesis": [
-                        {
-                            question: "Where does transcription occur in eukaryotic cells?",
-                            options: ["Cytoplasm", "Nucleus", "Ribosome", "Mitochondria"],
-                            answer: 1
-                        },
-                        {
-                            question: "What is the start codon for protein synthesis?",
-                            options: ["UAA", "AUG", "UAG", "UGA"],
-                            answer: 1
-                        },
-                        {
-                            question: "Which RNA type carries amino acids to the ribosome?",
-                            options: ["mRNA", "rRNA", "tRNA", "snRNA"],
-                            answer: 2
-                        }
-                    ],
-                    "Gene Regulation": [
-                        {
-                            question: "What binds to the operator region in the lac operon?",
-                            options: ["RNA polymerase", "CAP protein", "Lac repressor", "cAMP"],
-                            answer: 2
-                        },
-                        {
-                            question: "Which modification typically activates gene expression?",
-                            options: ["Histone methylation", "Histone acetylation", "DNA methylation", "Chromatin condensation"],
-                            answer: 1
-                        },
-                        {
-                            question: "What is the function of enhancer elements?",
-                            options: ["Bind RNA polymerase", "Increase transcription", "Terminate transcription", "Remove introns"],
-                            answer: 1
-                        }
-                    ]
-                };
-                
-                const quiz = quizzes[topic] || quizzes["DNA Replication"];
-                let response = `<strong>Quick Quiz: ${topic}</strong><br><br>`;
-                
-                quiz.forEach((q, index) => {
-                    response += `<div class="interactive-mode">
-                        <h4>Question ${index + 1}: ${q.question}</h4>
-                        <div class="interactive-options">`;
-                    
-                    q.options.forEach((option, optIndex) => {
-                        response += `<div class="interactive-option" data-question="${index}" data-answer="${optIndex}">${option}</div>`;
-                    });
-                    
-                    response += `</div></div>`;
-                });
-                
-                addMessage(response, 'bot');
-                
-                // Add event listeners to quiz options
-                setTimeout(() => {
-                    document.querySelectorAll('.interactive-option[data-question]').forEach(option => {
-                        option.addEventListener('click', function() {
-                            const questionIndex = parseInt(this.getAttribute('data-question'));
-                            const answerIndex = parseInt(this.getAttribute('data-answer'));
-                            const correctAnswer = quiz[questionIndex].answer;
-                            
-                            if (answerIndex === correctAnswer) {
-                                addMessage(`<span style="color: var(--success)">✓ Correct! Well done.</span>`, 'bot');
-                            } else {
-                                addMessage(`<span style="color: var(--error)">✗ Not quite. The correct answer is: ${quiz[questionIndex].options[correctAnswer]}</span>`, 'bot');
-                            }
-                        });
-                    });
-                }, 100);
-            }
-            
-            // Enhanced response generation with PDF knowledge
-            function generateResponse(message) {
+            // Generate fallback response when backend is unavailable
+            function generateFallbackResponse(message) {
                 const lowerMessage = message.toLowerCase();
                 
-                // DNA structure responses
-                if (lowerMessage.includes('dna') && (lowerMessage.includes('structure') || lowerMessage.includes('helix') || lowerMessage.includes('double helix'))) {
-                    return `DNA has a <strong>double-helical structure</strong> with two antiparallel polynucleotide chains. Key features:<br><br>
-                    • The backbone consists of sugar-phosphate groups<br>
-                    • Bases project inward and form hydrogen bonds<br>
-                    • <span class="highlight">Adenine (A)</span> pairs with <span class="highlight">Thymine (T)</span> via 2 hydrogen bonds<br>
-                    • <span class="highlight">Guanine (G)</span> pairs with <span class="highlight">Cytosine (C)</span> via 3 hydrogen bonds<br>
-                    • The two chains have anti-parallel polarity (5'→3' and 3'→5')<br>
-                    • The helix is right-handed with a pitch of 3.4 nm<br>
-                    • There are roughly 10 base pairs per turn<br>
-                    • Base stacking provides additional stability to the structure<br><br>
-                    This structure was proposed by Watson and Crick in 1953 based on X-ray diffraction data from Wilkins and Franklin.`;
+                if (lowerMessage.includes('dna') && lowerMessage.includes('structure')) {
+                    return "DNA has a double-helical structure with two antiparallel strands. The backbone is made of sugar-phosphate groups, and bases (A, T, C, G) project inward, forming complementary pairs (A-T, G-C).";
+                } else if (lowerMessage.includes('transcription')) {
+                    return "Transcription is the process where DNA is copied into mRNA. RNA polymerase binds to promoter regions and synthesizes mRNA complementary to the template strand.";
+                } else if (lowerMessage.includes('translation')) {
+                    return "Translation converts mRNA into proteins. Ribosomes read mRNA codons, and tRNA brings corresponding amino acids to build polypeptide chains.";
+                } else if (lowerMessage.includes('genetic code')) {
+                    return "The genetic code is the set of rules by which mRNA sequences are translated into proteins. It's triplet (3 bases per codon), degenerate (multiple codons per amino acid), and nearly universal.";
+                } else {
+                    return "I can help you understand molecular genetics concepts like DNA structure, replication, transcription, translation, and gene regulation. What specific topic interests you?";
                 }
-                
-                // DNA replication
-                if (lowerMessage.includes('dna replication') || lowerMessage.includes('replication') || lowerMessage.includes('semiconservative')) {
-                    return `DNA replication is <strong>semiconservative</strong>, meaning each new DNA molecule contains one original strand and one newly synthesized strand. Key aspects:<br><br>
-                    • Proposed by Watson and Crick in 1953<br>
-                    • Proven by Meselson and Stahl in 1958 using <sup>15</sup>N and <sup>14</sup>N isotopes<br>
-                    • Main enzyme: DNA-dependent DNA polymerase<br>
-                    • Replication occurs at replication forks<br>
-                    • Leading strand is synthesized continuously (5'→3')<br>
-                    • Lagging strand is synthesized discontinuously as Okazaki fragments<br>
-                    • DNA ligase joins the fragments<br>
-                    • Requires origin of replication to initiate<br>
-                    • Highly accurate with error rate of ~1 in 10<sup>9</sup> bases<br>
-                    • E. coli completes replication in ~18 minutes at ~2000 bp/second`;
-                }
-                
-                // Transcription
-                if (lowerMessage.includes('transcription') || lowerMessage.includes('rna polymerase') || lowerMessage.includes('mrna')) {
-                    return `Transcription is the process of copying genetic information from DNA to RNA. Key points:<br><br>
-                    <strong>Process:</strong><br>
-                    • Only one DNA strand (template strand) is transcribed<br>
-                    • RNA polymerase catalyzes RNA synthesis (5'→3')<br>
-                    • Promoter region initiates transcription<br>
-                    • Terminator region ends transcription<br>
-                    • In bacteria: single RNA polymerase with σ factor for initiation<br>
-                    • In eukaryotes: three RNA polymerases (I, II, III)<br><br>
-                    <strong>Transcription Unit:</strong><br>
-                    • Promoter: Binding site for RNA polymerase<br>
-                    • Structural gene: Region to be transcribed<br>
-                    • Terminator: Signals end of transcription<br><br>
-                    <strong>Eukaryotic differences:</strong><br>
-                    • Primary transcript (hnRNA) contains introns and exons<br>
-                    • Splicing removes introns and joins exons<br>
-                    • 5' capping with methyl guanosine triphosphate<br>
-                    • 3' poly-A tailing with adenylate residues`;
-                }
-                
-                // Genetic code
-                if (lowerMessage.includes('genetic code') || lowerMessage.includes('codon') || lowerMessage.includes('amino acid')) {
-                    return `The <strong>genetic code</strong> is the set of rules by which information in mRNA is translated into proteins. Key characteristics:<br><br>
-                    • The code is <strong>triplet</strong> - three nucleotides code for one amino acid<br>
-                    • 61 codons code for amino acids, 3 are stop codons<br>
-                    • The code is <strong>degenerate</strong> - most amino acids have multiple codons<br>
-                    • Codons are read continuously without punctuation<br>
-                    • The code is nearly <strong>universal</strong> across organisms<br>
-                    • <span class="start-codon">AUG</span> codes for Methionine and serves as the start codon<br>
-                    • <span class="stop-codon">UAA, UAG, UGA</span> are stop codons<br><br>
-                    The genetic code was deciphered through work by Khorana, Nirenberg, and others using synthetic RNA and cell-free systems.`;
-                }
-                
-                // Translation
-                if (lowerMessage.includes('translation') || lowerMessage.includes('protein synthesis') || lowerMessage.includes('ribosome')) {
-                    return `Translation is the process of protein synthesis from mRNA. Key components and steps:<br><br>
-                    <strong>Components:</strong><br>
-                    • mRNA: Provides the template with codons<br>
-                    • tRNA: Adapter molecule with anticodon and amino acid binding site<br>
-                    • Ribosome: Site of protein synthesis with large and small subunits<br>
-                    • Aminoacyl-tRNA synthetase: Enzymes that charge tRNA with amino acids<br><br>
-                    <strong>Process:</strong><br>
-                    • Initiation: Ribosome binds to start codon (AUG)<br>
-                    • Elongation: Amino acids added one by one to growing polypeptide<br>
-                    • Termination: Stop codon signals release of completed protein<br>
-                    • Ribosomal RNA (rRNA) acts as ribozyme for peptide bond formation<br><br>
-                    Translation requires energy from GTP and occurs in the 5'→3' direction on mRNA.`;
-                }
-                
-                // Lac operon
-                if (lowerMessage.includes('lac operon') || lowerMessage.includes('operon') || lowerMessage.includes('gene regulation')) {
-                    return `The <strong>lac operon</strong> is a classic example of gene regulation in bacteria. Key features:<br><br>
-                    <strong>Components:</strong><br>
-                    • Regulatory gene (i): Codes for repressor protein<br>
-                    • Promoter (P): Binding site for RNA polymerase<br>
-                    • Operator (O): Binding site for repressor<br>
-                    • Structural genes:<br>
-                    &nbsp;&nbsp;- z gene: β-galactosidase (hydrolyzes lactose)<br>
-                    &nbsp;&nbsp;- y gene: Permease (lactose transport)<br>
-                    &nbsp;&nbsp;- a gene: Transacetylase<br><br>
-                    <strong>Regulation:</strong><br>
-                    • In absence of lactose: Repressor binds operator, preventing transcription<br>
-                    • In presence of lactose: Lactose (inducer) binds repressor, inactivating it<br>
-                    • RNA polymerase can then transcribe the operon<br>
-                    • This is an example of <strong>negative regulation</strong><br><br>
-                    The lac operon was elucidated by Jacob and Monod, demonstrating how genes can be regulated by environmental conditions.`;
-                }
-                
-                // Workflow suggestion
-                if (lowerMessage.includes('workflow') || lowerMessage.includes('guide') || lowerMessage.includes('step by step') || lowerMessage.includes('tutorial')) {
-                    return `I can guide you through interactive workflows on key molecular genetics processes. Would you like to explore:<br><br>
-                    <div class="workflow-controls">
-                        <div class="workflow-step" data-workflow="dnaReplication">
-                            <i class="fas fa-dna"></i> DNA Replication
-                        </div>
-                        <div class="workflow-step" data-workflow="proteinSynthesis">
-                            <i class="fas fa-link"></i> Protein Synthesis
-                        </div>
-                        <div class="workflow-step" data-workflow="geneRegulation">
-                            <i class="fas fa-sliders-h"></i> Gene Regulation
-                        </div>
-                    </div>
-                    <br>Click on any workflow to start, or ask me a specific question!`;
-                }
-                
-                // Default response
-                return `I'm MolGenoBot, your molecular genetics assistant! I can explain:<br><br>
-                • DNA structure and the double helix<br>
-                • DNA replication (semiconservative model)<br>
-                • Transcription and RNA processing<br>
-                • The genetic code and codon usage<br>
-                • Translation and protein synthesis<br>
-                • Gene regulation (like the lac operon)<br>
-                • Mutations and their effects<br>
-                • The Human Genome Project<br>
-                • DNA fingerprinting techniques<br>
-                • The RNA world hypothesis<br><br>
-                I can also guide you through <strong>interactive workflows</strong> on these topics. Just ask for a "workflow" or "step-by-step guide"!`;
+            }
+            
+            // Generate user ID
+            function generateUserId() {
+                const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('user_id', userId);
+                return userId;
+            }
+            
+            // Save user session to localStorage
+            function saveUserSession() {
+                localStorage.setItem('knowledge_level', userSession.knowledgeLevel.toString());
+                localStorage.setItem('user_interests', JSON.stringify(userSession.interests));
+                localStorage.setItem('conversation_history', JSON.stringify(userSession.conversationHistory));
             }
             
             // Suggested questions
@@ -1696,18 +1370,9 @@
                     sendMessage();
                 });
             });
-            
-            // Add event listeners for workflow controls in regular responses
-            setTimeout(() => {
-                document.querySelectorAll('.workflow-step').forEach(step => {
-                    step.addEventListener('click', function() {
-                        const workflowKey = this.getAttribute('data-workflow');
-                        startWorkflow(workflowKey);
-                    });
-                });
-            }, 100);
         }
 
+        // DNA Translation Functionality with Peptide Calculation
         document.addEventListener('DOMContentLoaded', function() {
             createNetworkBackground();
             initializeChatbot();
@@ -1730,6 +1395,7 @@
             const baseCount = document.getElementById('base-count');
             const notification = document.getElementById('notification');
             const proteinInfo = document.getElementById('protein-info');
+            const peptideAnalysis = document.getElementById('peptide-analysis');
             
             // Genetic code mapping
             const geneticCode = {
@@ -1758,6 +1424,30 @@
                 "His": 155.16, "Ile": 131.17, "Leu": 131.17, "Lys": 146.19,
                 "Met": 149.21, "Phe": 165.19, "Pro": 115.13, "Ser": 105.09,
                 "Thr": 119.12, "Trp": 204.23, "Tyr": 181.19, "Val": 117.15
+            };
+            
+            // Amino acid properties for peptide analysis
+            const aminoAcidProperties = {
+                "Ala": { pKa: 2.34, pKb: 9.69, hydrophobicity: 1.8 },
+                "Arg": { pKa: 2.17, pKb: 9.04, hydrophobicity: -4.5 },
+                "Asn": { pKa: 2.02, pKb: 8.80, hydrophobicity: -3.5 },
+                "Asp": { pKa: 1.88, pKb: 9.60, hydrophobicity: -3.5 },
+                "Cys": { pKa: 1.96, pKb: 10.28, hydrophobicity: 2.5 },
+                "Gln": { pKa: 2.17, pKb: 9.13, hydrophobicity: -3.5 },
+                "Glu": { pKa: 2.19, pKb: 9.67, hydrophobicity: -3.5 },
+                "Gly": { pKa: 2.34, pKb: 9.60, hydrophobicity: -0.4 },
+                "His": { pKa: 1.82, pKb: 9.17, hydrophobicity: -3.2 },
+                "Ile": { pKa: 2.36, pKb: 9.68, hydrophobicity: 4.5 },
+                "Leu": { pKa: 2.36, pKb: 9.60, hydrophobicity: 3.8 },
+                "Lys": { pKa: 2.18, pKb: 8.95, hydrophobicity: -3.9 },
+                "Met": { pKa: 2.28, pKb: 9.21, hydrophobicity: 1.9 },
+                "Phe": { pKa: 1.83, pKb: 9.13, hydrophobicity: 2.8 },
+                "Pro": { pKa: 1.99, pKb: 10.60, hydrophobicity: -1.6 },
+                "Ser": { pKa: 2.21, pKb: 9.15, hydrophobicity: -0.8 },
+                "Thr": { pKa: 2.11, pKb: 9.62, hydrophobicity: -0.7 },
+                "Trp": { pKa: 2.38, pKb: 9.39, hydrophobicity: -0.9 },
+                "Tyr": { pKa: 2.20, pKb: 9.11, hydrophobicity: -1.3 },
+                "Val": { pKa: 2.32, pKb: 9.62, hydrophobicity: 4.2 }
             };
             
             // Update strand info display
@@ -1845,6 +1535,98 @@
                 return totalWeight - waterLoss;
             }
             
+            // Function to analyze peptide properties
+            function analyzePeptide(aminoAcids) {
+                // Remove STOP codon if present
+                const filteredAminoAcids = aminoAcids.filter(aa => aa !== "STOP");
+                
+                if (filteredAminoAcids.length === 0) {
+                    return {
+                        length: 0,
+                        weight: 0,
+                        pI: 0,
+                        hydrophobicity: 0,
+                        composition: {}
+                    };
+                }
+                
+                // Calculate amino acid composition
+                const composition = {};
+                filteredAminoAcids.forEach(aa => {
+                    composition[aa] = (composition[aa] || 0) + 1;
+                });
+                
+                // Calculate theoretical pI (isoelectric point)
+                const pI = calculateTheoreticalPI(filteredAminoAcids);
+                
+                // Calculate average hydrophobicity
+                const hydrophobicity = calculateHydrophobicity(filteredAminoAcids);
+                
+                return {
+                    length: filteredAminoAcids.length,
+                    weight: calculateMolecularWeight(aminoAcids),
+                    pI: pI,
+                    hydrophobicity: hydrophobicity,
+                    composition: composition
+                };
+            }
+            
+            // Function to calculate theoretical pI
+            function calculateTheoreticalPI(aminoAcids) {
+                // Simplified pI calculation based on amino acid properties
+                let acidicCount = 0;
+                let basicCount = 0;
+                
+                aminoAcids.forEach(aa => {
+                    if (['Asp', 'Glu'].includes(aa)) acidicCount++;
+                    if (['Lys', 'Arg', 'His'].includes(aa)) basicCount++;
+                });
+                
+                // Simple approximation
+                const netCharge = basicCount - acidicCount;
+                return 6.5 + (netCharge * 0.1); // Base pI with adjustment for charge
+            }
+            
+            // Function to calculate hydrophobicity
+            function calculateHydrophobicity(aminoAcids) {
+                let totalHydrophobicity = 0;
+                aminoAcids.forEach(aa => {
+                    totalHydrophobicity += aminoAcidProperties[aa]?.hydrophobicity || 0;
+                });
+                return totalHydrophobicity / aminoAcids.length;
+            }
+            
+            // Function to update peptide analysis display
+            function updatePeptideAnalysis(analysis) {
+                const peptideLength = document.getElementById('peptide-length');
+                const peptideWeight = document.getElementById('peptide-weight');
+                const peptideCharge = document.getElementById('peptide-charge');
+                const peptideHydrophobicity = document.getElementById('peptide-hydrophobicity');
+                const aminoAcidComposition = document.getElementById('amino-acid-composition');
+                
+                peptideLength.textContent = analysis.length;
+                peptideWeight.textContent = analysis.weight.toFixed(2);
+                peptideCharge.textContent = analysis.pI.toFixed(2);
+                peptideHydrophobicity.textContent = analysis.hydrophobicity.toFixed(2);
+                
+                // Update amino acid composition
+                aminoAcidComposition.innerHTML = '';
+                Object.entries(analysis.composition)
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([aa, count]) => {
+                        const aaItem = document.createElement('div');
+                        aaItem.className = 'amino-acid-item';
+                        aaItem.innerHTML = `
+                            <span class="amino-acid-name">${aa}</span>
+                            <span class="amino-acid-count">${count}</span>
+                        `;
+                        aminoAcidComposition.appendChild(aaItem);
+                    });
+                
+                // Show peptide analysis section
+                peptideAnalysis.style.display = 'block';
+            }
+            
             // Update visualization
             function updateVisualization(seq, proteinArray) {
                 const dnaVisualization = document.getElementById('dna-visualization');
@@ -1862,6 +1644,7 @@
                     mRNAVisualization.innerHTML = '<div class="placeholder">Transcription</div>';
                     proteinVisualization.innerHTML = '<div class="placeholder">Translation</div>';
                     proteinInfo.textContent = 'Peptide length: 0';
+                    peptideAnalysis.style.display = 'none';
                     return;
                 }
                 
@@ -1943,6 +1726,7 @@
                 polypeptide.textContent = '-';
                 molecularWeight.textContent = 'Molecular Weight: -';
                 updateVisualization(null, []);
+                peptideAnalysis.style.display = 'none';
             });
             
             // Initialize strand info
@@ -1971,6 +1755,7 @@
                 molecularWeight.textContent = 'Molecular Weight: -';
                 updateBaseCounter('');
                 updateVisualization(null, []);
+                peptideAnalysis.style.display = 'none';
                 showNotification('Cleared all data');
             });
             
@@ -1987,6 +1772,7 @@
                 mRNA.textContent = '-';
                 polypeptide.textContent = '-';
                 molecularWeight.textContent = 'Molecular Weight: -';
+                peptideAnalysis.style.display = 'none';
                 
                 // Validate input
                 if (!dnaSequence) {
@@ -2042,6 +1828,9 @@
                     // Calculate molecular weight
                     const weight = calculateMolecularWeight(proteinArray);
                     
+                    // Perform peptide analysis
+                    const peptideAnalysisResult = analyzePeptide(proteinArray);
+                    
                     // Update results
                     complementaryStrand.textContent = strandType.value === 'template' ? codingStrand : templateStrand;
                     mRNA.textContent = mRNAseq;
@@ -2050,6 +1839,9 @@
                     
                     // Update visualization
                     updateVisualization(dnaSequence, proteinArray);
+                    
+                    // Update peptide analysis
+                    updatePeptideAnalysis(peptideAnalysisResult);
                     
                     // Reset button
                     translateBtn.innerHTML = originalText;
