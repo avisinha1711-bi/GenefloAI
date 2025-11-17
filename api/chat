@@ -1,0 +1,244 @@
+// Enhanced Memory System (REPLACE existing memory code)
+class EnhancedMemory {
+  constructor() {
+    this.conversationMemory = new Map();
+    this.conceptMemory = new Map();
+    this.userModels = new Map();
+  }
+
+  storeConversation(userId, message, response, timestamp) {
+    if (!this.conversationMemory.has(userId)) {
+      this.conversationMemory.set(userId, []);
+    }
+    
+    const conversation = this.conversationMemory.get(userId);
+    conversation.push({
+      role: 'user',
+      content: message,
+      timestamp
+    });
+    
+    conversation.push({
+      role: 'assistant',
+      content: response,
+      timestamp
+    });
+    
+    // Keep only last 50 messages
+    if (conversation.length > 50) {
+      this.conversationMemory.set(userId, conversation.slice(-50));
+    }
+  }
+
+  learnConcept(userId, concept, confidence = 1) {
+    if (!this.conceptMemory.has(userId)) {
+      this.conceptMemory.set(userId, new Map());
+    }
+    
+    const userConcepts = this.conceptMemory.get(userId);
+    const currentConfidence = userConcepts.get(concept) || 0;
+    userConcepts.set(concept, Math.min(1, currentConfidence + confidence * 0.1));
+  }
+
+  getRelevantMemories(userId, currentMessage, limit = 5) {
+    const conversation = this.conversationMemory.get(userId) || [];
+    const concepts = this.conceptMemory.get(userId) || new Map();
+    
+    const relevantMemories = conversation
+      .filter(msg => msg.role === 'user')
+      .slice(-limit)
+      .map(msg => msg.content);
+    
+    const strongConcepts = Array.from(concepts.entries())
+      .filter(([_, confidence]) => confidence > 0.7)
+      .map(([concept]) => concept);
+    
+    return {
+      recentConversations: relevantMemories,
+      knownConcepts: strongConcepts
+    };
+  }
+}
+
+// Adaptive Learning Engine (REPLACE existing learning code)
+class AdaptiveLearningEngine {
+  constructor() {
+    this.knowledgeGraph = new Map();
+    this.initializeKnowledgeGraph();
+  }
+
+  initializeKnowledgeGraph() {
+    const concepts = {
+      'dna_structure': {
+        name: 'DNA Structure',
+        prerequisites: [],
+        difficulty: 'beginner',
+        related: ['base_pairing', 'double_helix']
+      },
+      'transcription': {
+        name: 'Transcription',
+        prerequisites: ['dna_structure'],
+        difficulty: 'intermediate',
+        related: ['rna_polymerase', 'promoter']
+      },
+      'translation': {
+        name: 'Translation',
+        prerequisites: ['transcription', 'genetic_code'],
+        difficulty: 'intermediate',
+        related: ['ribosome', 'trna', 'codon']
+      },
+      'genetic_code': {
+        name: 'Genetic Code',
+        prerequisites: ['dna_structure'],
+        difficulty: 'beginner',
+        related: ['codon', 'amino_acid']
+      }
+    };
+
+    this.knowledgeGraph = new Map(Object.entries(concepts));
+  }
+
+  assessKnowledgeLevel(userSession, currentMessage) {
+    const { conversationHistory, knowledgeLevel } = userSession;
+    
+    const understandingScore = this.analyzeUnderstanding(conversationHistory);
+    const questionComplexity = this.analyzeQuestionComplexity(currentMessage);
+    
+    let newLevel = knowledgeLevel;
+    if (understandingScore > 0.8 && questionComplexity === 'high') {
+      newLevel = Math.min(5, knowledgeLevel + 0.1);
+    } else if (understandingScore < 0.4) {
+      newLevel = Math.max(1, knowledgeLevel - 0.1);
+    }
+    
+    return newLevel;
+  }
+
+  personalizeExplanation(concept, knowledgeLevel) {
+    const explanations = {
+      'dna_structure': {
+        1: "DNA is like a twisted ladder with four chemical letters: A, T, C, G.",
+        3: "DNA has a double-helix structure with complementary base pairing: A-T and C-G.",
+        5: "The DNA double helix features major and minor grooves, with anti-parallel strands running 5' to 3' and 3' to 5'."
+      },
+      'transcription': {
+        1: "Transcription copies DNA into mRNA so it can leave the nucleus.",
+        3: "RNA polymerase binds to promoter regions and synthesizes mRNA complementary to the template strand.",
+        5: "Transcription involves initiation at promoter elements, elongation with NTP addition, and termination at specific sequences."
+      }
+    };
+
+    const level = Math.min(5, Math.max(1, Math.round(knowledgeLevel)));
+    return explanations[concept]?.[level] || explanations[concept]?.[3] || "Explanation not available.";
+  }
+
+  analyzeUnderstanding(conversationHistory) {
+    let score = 0.5;
+    const recentMessages = conversationHistory.slice(-10);
+    const confusionIndicators = ['confused', 'don\'t understand', 'what does', 'explain again'];
+    const understandingIndicators = ['I see', 'that makes sense', 'understood', 'thanks for explaining'];
+    
+    const confusionCount = recentMessages.filter(msg => 
+      confusionIndicators.some(indicator => msg.message.toLowerCase().includes(indicator))
+    ).length;
+    
+    const understandingCount = recentMessages.filter(msg => 
+      understandingIndicators.some(indicator => msg.message.toLowerCase().includes(indicator))
+    ).length;
+    
+    score += (understandingCount - confusionCount) * 0.1;
+    return Math.max(0.1, Math.min(1, score));
+  }
+
+  analyzeQuestionComplexity(question) {
+    const beginnerKeywords = ['what is', 'basic', 'simple'];
+    const advancedKeywords = ['mechanism', 'regulation', 'specific', 'detailed'];
+    
+    if (advancedKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
+      return 'high';
+    } else if (beginnerKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
+      return 'low';
+    }
+    return 'medium';
+  }
+}
+
+// Initialize systems (REPLACE existing initializations)
+const memorySystem = new EnhancedMemory();
+const learningEngine = new AdaptiveLearningEngine();
+
+// ENHANCED Chat endpoint (REPLACE your existing /api/chat endpoint)
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, userSession } = req.body;
+    
+    // Update knowledge level based on current interaction
+    const updatedKnowledgeLevel = learningEngine.assessKnowledgeLevel(userSession, message);
+    
+    // Store conversation in memory
+    memorySystem.storeConversation(userSession.id, message, "Processing...", new Date());
+    
+    // Get relevant memories for context
+    const relevantMemories = memorySystem.getRelevantMemories(userSession.id, message);
+    
+    // Generate personalized response
+    const response = await generateEnhancedResponse(message, userSession, relevantMemories);
+    
+    // Learn concepts from this interaction
+    memorySystem.learnConcept(userSession.id, 'molecular_genetics', 0.5);
+    
+    // Update user session
+    const updatedSession = {
+      ...userSession,
+      knowledgeLevel: updatedKnowledgeLevel,
+      lastInteraction: new Date().toISOString()
+    };
+    
+    res.json({
+      response: response,
+      updatedSession: updatedSession,
+      suggestedQuestions: [
+        "Can you explain the central dogma?",
+        "What's the difference between DNA and RNA?",
+        "How does protein synthesis work?"
+      ]
+    });
+    
+  } catch (error) {
+    console.error('Enhanced chat error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// NEW Memory endpoints (ADD these)
+app.get('/api/memory/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const memories = memorySystem.getRelevantMemories(userId, "");
+  res.json(memories);
+});
+
+app.delete('/api/memory/:userId', (req, res) => {
+  const userId = req.params.userId;
+  // In a real implementation, you'd clear the memories
+  res.json({ message: 'Memory cleared for user ' + userId });
+});
+
+// Helper function for enhanced responses
+async function generateEnhancedResponse(message, userSession, memories) {
+  const lowerMessage = message.toLowerCase();
+  
+  // Use learning level to personalize response
+  const knowledgeLevel = userSession.knowledgeLevel;
+  
+  if (lowerMessage.includes('dna') && lowerMessage.includes('structure')) {
+    return learningEngine.personalizeExplanation('dna_structure', knowledgeLevel);
+  } else if (lowerMessage.includes('transcription')) {
+    return learningEngine.personalizeExplanation('transcription', knowledgeLevel);
+  } else if (lowerMessage.includes('translation')) {
+    return learningEngine.personalizeExplanation('translation', knowledgeLevel);
+  } else if (lowerMessage.includes('genetic code')) {
+    return learningEngine.personalizeExplanation('genetic_code', knowledgeLevel);
+  } else {
+    return `Based on your current knowledge level (${knowledgeLevel.toFixed(1)}/5), I'd be happy to explain molecular genetics concepts. What specific topic are you interested in?`;
+  }
+}
