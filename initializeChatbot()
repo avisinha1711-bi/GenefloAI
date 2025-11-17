@@ -1,0 +1,278 @@
+// ENHANCED Chatbot Initialization (REPLACE existing function)
+function initializeChatbot() {
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    const chatbotWindow = document.getElementById('chatbot-window');
+    const chatbotClose = document.getElementById('chatbot-close');
+    const chatbotMessages = document.getElementById('chatbot-messages');
+    const chatbotInput = document.getElementById('chatbot-input');
+    const chatbotSend = document.getElementById('chatbot-send');
+    
+    // Backend API URL
+    const BACKEND_URL = 'http://localhost:3000/api';
+    
+    // ENHANCED User session with learning data
+    let userSession = {
+        id: localStorage.getItem('user_id') || generateUserId(),
+        knowledgeLevel: parseFloat(localStorage.getItem('knowledge_level')) || 1.0,
+        interests: JSON.parse(localStorage.getItem('user_interests')) || ['molecular_genetics'],
+        conversationHistory: JSON.parse(localStorage.getItem('conversation_history')) || [],
+        learningProgress: JSON.parse(localStorage.getItem('learning_progress')) || {},
+        lastInteraction: localStorage.getItem('last_interaction') || new Date().toISOString()
+    };
+    
+    // Toggle chatbot window
+    chatbotToggle.addEventListener('click', () => {
+        chatbotWindow.classList.toggle('active');
+        if (chatbotWindow.classList.contains('active')) {
+            chatbotInput.focus();
+            updateLearningProgressUI();
+        }
+    });
+    
+    chatbotClose.addEventListener('click', () => {
+        chatbotWindow.classList.remove('active');
+    });
+    
+    // ENHANCED Send message function (REPLACE existing)
+    async function sendMessage() {
+        const message = chatbotInput.value.trim();
+        if (!message) return;
+        
+        // Add user message
+        addMessage(message, 'user');
+        chatbotInput.value = '';
+        
+        // Show ENHANCED typing indicator
+        showEnhancedTypingIndicator();
+        
+        try {
+            // Send to ENHANCED backend
+            const response = await fetch(`${BACKEND_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    userSession: userSession
+                })
+            });
+            
+            const data = await response.json();
+            
+            // Remove typing indicator
+            removeTypingIndicator();
+            
+            // Add bot response
+            addMessage(data.response, 'bot');
+            
+            // Update ENHANCED user session
+            if (data.updatedSession) {
+                userSession = { ...userSession, ...data.updatedSession };
+                saveEnhancedUserSession();
+                updateLearningProgressUI();
+            }
+            
+            // Add suggested questions
+            if (data.suggestedQuestions && data.suggestedQuestions.length > 0) {
+                addSuggestedQuestions(data.suggestedQuestions);
+            }
+            
+        } catch (error) {
+            removeTypingIndicator();
+            console.error('Chat error:', error);
+            addMessage("I'm having trouble connecting to my enhanced learning system. Let me provide a basic response.", 'bot');
+            const fallbackResponse = generateEnhancedFallbackResponse(message, userSession.knowledgeLevel);
+            addMessage(fallbackResponse, 'bot');
+        }
+    }
+    
+    // ENHANCED Typing indicator (REPLACE existing)
+    function showEnhancedTypingIndicator() {
+        const typingElement = document.createElement('div');
+        typingElement.classList.add('message', 'bot', 'typing-indicator');
+        typingElement.id = 'typing-indicator';
+        typingElement.innerHTML = `
+            <div>MolGenoBot is thinking <i class="fas fa-brain"></i></div>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <div style="font-size: 0.7rem; margin-top: 5px; color: var(--text-muted);">
+                Adapting to your knowledge level: ${userSession.knowledgeLevel.toFixed(1)}/5.0
+            </div>
+        `;
+        chatbotMessages.appendChild(typingElement);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+    
+    // ENHANCED Fallback response (REPLACE existing)
+    function generateEnhancedFallbackResponse(message, knowledgeLevel) {
+        const lowerMessage = message.toLowerCase();
+        
+        if (lowerMessage.includes('dna') && lowerMessage.includes('structure')) {
+            if (knowledgeLevel < 2) {
+                return "DNA is like a twisted ladder with four chemical letters: A, T, C, G that always pair up (A with T, C with G).";
+            } else if (knowledgeLevel < 4) {
+                return "DNA has a double-helix structure with complementary base pairing: A-T and C-G. The strands run anti-parallel (5'→3' and 3'→5').";
+            } else {
+                return "The DNA double helix features major and minor grooves, with anti-parallel strands. Base stacking and hydrogen bonding stabilize the structure, while the sugar-phosphate backbone provides structural integrity.";
+            }
+        } else if (lowerMessage.includes('transcription')) {
+            if (knowledgeLevel < 2) {
+                return "Transcription is like photocopying a DNA recipe into mRNA that can leave the nucleus.";
+            } else {
+                return "Transcription involves RNA polymerase binding to promoter regions, unwinding DNA, and synthesizing mRNA complementary to the template strand (3'→5'), producing mRNA in the 5'→3' direction.";
+            }
+        } else {
+            return `I can help you understand molecular genetics concepts at your current knowledge level (${knowledgeLevel.toFixed(1)}/5.0). What specific topic would you like to explore?`;
+        }
+    }
+    
+    // ENHANCED User session saving (REPLACE existing)
+    function saveEnhancedUserSession() {
+        localStorage.setItem('user_id', userSession.id);
+        localStorage.setItem('knowledge_level', userSession.knowledgeLevel.toString());
+        localStorage.setItem('user_interests', JSON.stringify(userSession.interests));
+        localStorage.setItem('conversation_history', JSON.stringify(userSession.conversationHistory));
+        localStorage.setItem('learning_progress', JSON.stringify(userSession.learningProgress));
+        localStorage.setItem('last_interaction', userSession.lastInteraction);
+    }
+    
+    // NEW: Update learning progress UI
+    function updateLearningProgressUI() {
+        let progressElement = document.getElementById('knowledge-level-indicator');
+        if (!progressElement) {
+            progressElement = document.createElement('div');
+            progressElement.id = 'knowledge-level-indicator';
+            progressElement.style.cssText = `
+                position: absolute;
+                top: 10px;
+                right: 50px;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                background: rgba(37, 99, 235, 0.1);
+                padding: 2px 8px;
+                border-radius: 10px;
+            `;
+            document.querySelector('.chatbot-header').appendChild(progressElement);
+        }
+        progressElement.textContent = `Level: ${userSession.knowledgeLevel.toFixed(1)}/5.0`;
+        
+        // Update learning path suggestions based on level
+        updateLearningPathSuggestions();
+    }
+    
+    // NEW: Update learning path
+    function updateLearningPathSuggestions() {
+        const level = userSession.knowledgeLevel;
+        let suggestions = [];
+        
+        if (level < 2) {
+            suggestions = [
+                "What is DNA?",
+                "Basic structure of DNA", 
+                "What are genes?"
+            ];
+        } else if (level < 3) {
+            suggestions = [
+                "How transcription works",
+                "DNA vs RNA differences",
+                "What is the genetic code?"
+            ];
+        } else {
+            suggestions = [
+                "Protein synthesis mechanism",
+                "Gene regulation processes",
+                "Mutation types and effects"
+            ];
+        }
+        
+        // Update suggested questions in the initial message
+        const suggestedContainer = document.querySelector('.suggested-questions');
+        if (suggestedContainer) {
+            suggestedContainer.innerHTML = '';
+            suggestions.forEach(question => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'suggested-question';
+                questionElement.textContent = question;
+                questionElement.addEventListener('click', () => {
+                    chatbotInput.value = question;
+                    sendMessage();
+                });
+                suggestedContainer.appendChild(questionElement);
+            });
+        }
+    }
+    
+    // Keep existing functions that still work
+    function addMessage(text, sender) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', sender);
+        messageElement.innerHTML = text;
+        chatbotMessages.appendChild(messageElement);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        
+        // Save to conversation history
+        if (sender === 'user' || sender === 'bot') {
+            userSession.conversationHistory.push({
+                sender: sender,
+                message: text,
+                timestamp: new Date().toISOString()
+            });
+            saveEnhancedUserSession();
+        }
+    }
+    
+    function removeTypingIndicator() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+    
+    function generateUserId() {
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('user_id', userId);
+        return userId;
+    }
+    
+    function addSuggestedQuestions(questions) {
+        const suggestedContainer = document.createElement('div');
+        suggestedContainer.className = 'suggested-questions';
+        
+        questions.forEach(question => {
+            const questionElement = document.createElement('div');
+            questionElement.className = 'suggested-question';
+            questionElement.textContent = question;
+            questionElement.addEventListener('click', () => {
+                chatbotInput.value = question;
+                sendMessage();
+            });
+            suggestedContainer.appendChild(questionElement);
+        });
+        
+        chatbotMessages.appendChild(suggestedContainer);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+    
+    // Event listeners (KEEP these as they are)
+    chatbotSend.addEventListener('click', sendMessage);
+    chatbotInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    // Suggested questions (KEEP this)
+    document.querySelectorAll('.suggested-question').forEach(question => {
+        question.addEventListener('click', () => {
+            chatbotInput.value = question.textContent;
+            sendMessage();
+        });
+    });
+    
+    // Initialize UI
+    updateLearningProgressUI();
+}
