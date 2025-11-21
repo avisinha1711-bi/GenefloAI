@@ -1,278 +1,320 @@
-// ENHANCED Chatbot Initialization (REPLACE existing function)
-function initializeChatbot() {
-    const chatbotToggle = document.getElementById('chatbot-toggle');
-    const chatbotWindow = document.getElementById('chatbot-window');
-    const chatbotClose = document.getElementById('chatbot-close');
-    const chatbotMessages = document.getElementById('chatbot-messages');
-    const chatbotInput = document.getElementById('chatbot-input');
-    const chatbotSend = document.getElementById('chatbot-send');
-    
-    // Backend API URL
-    const BACKEND_URL = 'http://localhost:3000/api';
-    
-    // ENHANCED User session with learning data
-    let userSession = {
-        id: localStorage.getItem('user_id') || generateUserId(),
-        knowledgeLevel: parseFloat(localStorage.getItem('knowledge_level')) || 1.0,
-        interests: JSON.parse(localStorage.getItem('user_interests')) || ['molecular_genetics'],
-        conversationHistory: JSON.parse(localStorage.getItem('conversation_history')) || [],
-        learningProgress: JSON.parse(localStorage.getItem('learning_progress')) || {},
-        lastInteraction: localStorage.getItem('last_interaction') || new Date().toISOString()
-    };
-    
-    // Toggle chatbot window
-    chatbotToggle.addEventListener('click', () => {
-        chatbotWindow.classList.toggle('active');
-        if (chatbotWindow.classList.contains('active')) {
-            chatbotInput.focus();
-            updateLearningProgressUI();
-        }
-    });
-    
-    chatbotClose.addEventListener('click', () => {
-        chatbotWindow.classList.remove('active');
-    });
-    
-    // ENHANCED Send message function (REPLACE existing)
-    async function sendMessage() {
-        const message = chatbotInput.value.trim();
-        if (!message) return;
-        
-        // Add user message
-        addMessage(message, 'user');
-        chatbotInput.value = '';
-        
-        // Show ENHANCED typing indicator
-        showEnhancedTypingIndicator();
-        
-        try {
-            // Send to ENHANCED backend
-            const response = await fetch(`${BACKEND_URL}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: message,
-                    userSession: userSession
-                })
-            });
-            
-            const data = await response.json();
-            
-            // Remove typing indicator
-            removeTypingIndicator();
-            
-            // Add bot response
-            addMessage(data.response, 'bot');
-            
-            // Update ENHANCED user session
-            if (data.updatedSession) {
-                userSession = { ...userSession, ...data.updatedSession };
-                saveEnhancedUserSession();
-                updateLearningProgressUI();
-            }
-            
-            // Add suggested questions
-            if (data.suggestedQuestions && data.suggestedQuestions.length > 0) {
-                addSuggestedQuestions(data.suggestedQuestions);
-            }
-            
-        } catch (error) {
-            removeTypingIndicator();
-            console.error('Chat error:', error);
-            addMessage("I'm having trouble connecting to my enhanced learning system. Let me provide a basic response.", 'bot');
-            const fallbackResponse = generateEnhancedFallbackResponse(message, userSession.knowledgeLevel);
-            addMessage(fallbackResponse, 'bot');
-        }
+/* Enhanced Genetics Chatbot Styles */
+.chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.chatbot-toggle {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.chatbot-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.chatbot-window {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 400px;
+    height: 600px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chatbot-window.active {
+    display: flex;
+}
+
+.chatbot-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbot-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 12px 15px;
+    border-radius: 15px;
+    max-width: 85%;
+    line-height: 1.4;
+}
+
+.message.user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+
+.message.bot {
+    background: white;
+    border: 1px solid #e2e8f0;
+    margin-right: auto;
+    border-bottom-left-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.message.system {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    margin: 15px auto;
+    text-align: center;
+    max-width: 95%;
+    font-size: 0.9em;
+}
+
+.typing-indicator {
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 15px;
+}
+
+.typing-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #4f46e5;
+    margin-bottom: 8px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    margin: 10px 0;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing-bounce {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+.typing-info {
+    display: flex;
+    gap: 10px;
+    font-size: 0.7em;
+    color: #64748b;
+    margin-top: 8px;
+}
+
+.confidence-indicator {
+    font-size: 0.7em;
+    color: #64748b;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.concept-tags {
+    margin-top: 8px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.concept-tag {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    border: 1px solid #c7d2fe;
+}
+
+.welcome-message {
+    text-align: left;
+}
+
+.welcome-message h3 {
+    margin: 0 0 10px 0;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.welcome-message ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.welcome-message li {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.quick-action {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-action:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+.suggested-questions {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.suggested-questions strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #475569;
+    font-size: 0.9em;
+}
+
+.suggested-question {
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin: 5px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85em;
+}
+
+.suggested-question:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateX(5px);
+}
+
+.learning-insight {
+    background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+    border: 1px solid #c7d2fe;
+    color: #3730a3;
+}
+
+/* Scrollbar styling */
+.chatbot-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatbot-messages::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.chatbot-input-container {
+    display: flex;
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+}
+
+.chatbot-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 25px;
+    outline: none;
+    font-size: 14px;
+}
+
+.chatbot-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.chatbot-send {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chatbot-send:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .chatbot-window {
+        width: 350px;
+        height: 500px;
+        right: -10px;
     }
     
-    // ENHANCED Typing indicator (REPLACE existing)
-    function showEnhancedTypingIndicator() {
-        const typingElement = document.createElement('div');
-        typingElement.classList.add('message', 'bot', 'typing-indicator');
-        typingElement.id = 'typing-indicator';
-        typingElement.innerHTML = `
-            <div>MolGenoBot is thinking <i class="fas fa-brain"></i></div>
-            <div class="typing-dots">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-            <div style="font-size: 0.7rem; margin-top: 5px; color: var(--text-muted);">
-                Adapting to your knowledge level: ${userSession.knowledgeLevel.toFixed(1)}/5.0
-            </div>
-        `;
-        chatbotMessages.appendChild(typingElement);
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    .chatbot-toggle {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
     }
-    
-    // ENHANCED Fallback response (REPLACE existing)
-    function generateEnhancedFallbackResponse(message, knowledgeLevel) {
-        const lowerMessage = message.toLowerCase();
-        
-        if (lowerMessage.includes('dna') && lowerMessage.includes('structure')) {
-            if (knowledgeLevel < 2) {
-                return "DNA is like a twisted ladder with four chemical letters: A, T, C, G that always pair up (A with T, C with G).";
-            } else if (knowledgeLevel < 4) {
-                return "DNA has a double-helix structure with complementary base pairing: A-T and C-G. The strands run anti-parallel (5'→3' and 3'→5').";
-            } else {
-                return "The DNA double helix features major and minor grooves, with anti-parallel strands. Base stacking and hydrogen bonding stabilize the structure, while the sugar-phosphate backbone provides structural integrity.";
-            }
-        } else if (lowerMessage.includes('transcription')) {
-            if (knowledgeLevel < 2) {
-                return "Transcription is like photocopying a DNA recipe into mRNA that can leave the nucleus.";
-            } else {
-                return "Transcription involves RNA polymerase binding to promoter regions, unwinding DNA, and synthesizing mRNA complementary to the template strand (3'→5'), producing mRNA in the 5'→3' direction.";
-            }
-        } else {
-            return `I can help you understand molecular genetics concepts at your current knowledge level (${knowledgeLevel.toFixed(1)}/5.0). What specific topic would you like to explore?`;
-        }
-    }
-    
-    // ENHANCED User session saving (REPLACE existing)
-    function saveEnhancedUserSession() {
-        localStorage.setItem('user_id', userSession.id);
-        localStorage.setItem('knowledge_level', userSession.knowledgeLevel.toString());
-        localStorage.setItem('user_interests', JSON.stringify(userSession.interests));
-        localStorage.setItem('conversation_history', JSON.stringify(userSession.conversationHistory));
-        localStorage.setItem('learning_progress', JSON.stringify(userSession.learningProgress));
-        localStorage.setItem('last_interaction', userSession.lastInteraction);
-    }
-    
-    // NEW: Update learning progress UI
-    function updateLearningProgressUI() {
-        let progressElement = document.getElementById('knowledge-level-indicator');
-        if (!progressElement) {
-            progressElement = document.createElement('div');
-            progressElement.id = 'knowledge-level-indicator';
-            progressElement.style.cssText = `
-                position: absolute;
-                top: 10px;
-                right: 50px;
-                font-size: 0.7rem;
-                color: var(--text-muted);
-                background: rgba(37, 99, 235, 0.1);
-                padding: 2px 8px;
-                border-radius: 10px;
-            `;
-            document.querySelector('.chatbot-header').appendChild(progressElement);
-        }
-        progressElement.textContent = `Level: ${userSession.knowledgeLevel.toFixed(1)}/5.0`;
-        
-        // Update learning path suggestions based on level
-        updateLearningPathSuggestions();
-    }
-    
-    // NEW: Update learning path
-    function updateLearningPathSuggestions() {
-        const level = userSession.knowledgeLevel;
-        let suggestions = [];
-        
-        if (level < 2) {
-            suggestions = [
-                "What is DNA?",
-                "Basic structure of DNA", 
-                "What are genes?"
-            ];
-        } else if (level < 3) {
-            suggestions = [
-                "How transcription works",
-                "DNA vs RNA differences",
-                "What is the genetic code?"
-            ];
-        } else {
-            suggestions = [
-                "Protein synthesis mechanism",
-                "Gene regulation processes",
-                "Mutation types and effects"
-            ];
-        }
-        
-        // Update suggested questions in the initial message
-        const suggestedContainer = document.querySelector('.suggested-questions');
-        if (suggestedContainer) {
-            suggestedContainer.innerHTML = '';
-            suggestions.forEach(question => {
-                const questionElement = document.createElement('div');
-                questionElement.className = 'suggested-question';
-                questionElement.textContent = question;
-                questionElement.addEventListener('click', () => {
-                    chatbotInput.value = question;
-                    sendMessage();
-                });
-                suggestedContainer.appendChild(questionElement);
-            });
-        }
-    }
-    
-    // Keep existing functions that still work
-    function addMessage(text, sender) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', sender);
-        messageElement.innerHTML = text;
-        chatbotMessages.appendChild(messageElement);
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-        
-        // Save to conversation history
-        if (sender === 'user' || sender === 'bot') {
-            userSession.conversationHistory.push({
-                sender: sender,
-                message: text,
-                timestamp: new Date().toISOString()
-            });
-            saveEnhancedUserSession();
-        }
-    }
-    
-    function removeTypingIndicator() {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
-    }
-    
-    function generateUserId() {
-        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('user_id', userId);
-        return userId;
-    }
-    
-    function addSuggestedQuestions(questions) {
-        const suggestedContainer = document.createElement('div');
-        suggestedContainer.className = 'suggested-questions';
-        
-        questions.forEach(question => {
-            const questionElement = document.createElement('div');
-            questionElement.className = 'suggested-question';
-            questionElement.textContent = question;
-            questionElement.addEventListener('click', () => {
-                chatbotInput.value = question;
-                sendMessage();
-            });
-            suggestedContainer.appendChild(questionElement);
-        });
-        
-        chatbotMessages.appendChild(suggestedContainer);
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-    }
-    
-    // Event listeners (KEEP these as they are)
-    chatbotSend.addEventListener('click', sendMessage);
-    chatbotInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-    
-    // Suggested questions (KEEP this)
-    document.querySelectorAll('.suggested-question').forEach(question => {
-        question.addEventListener('click', () => {
-            chatbotInput.value = question.textContent;
-            sendMessage();
-        });
-    });
-    
-    // Initialize UI
-    updateLearningProgressUI();
 }
