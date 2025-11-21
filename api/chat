@@ -58,6 +58,12 @@ class EnhancedMemory {
       knownConcepts: strongConcepts
     };
   }
+
+  // Clear memory for a user (for deployment compatibility)
+  clearUserMemory(userId) {
+    this.conversationMemory.delete(userId);
+    this.conceptMemory.delete(userId);
+  }
 }
 
 // Adaptive Learning Engine
@@ -68,6 +74,7 @@ class AdaptiveLearningEngine {
   }
 
   initializeKnowledgeGraph() {
+    // Pre-defined knowledge graph - no dynamic imports
     const concepts = {
       'mutations': {
         name: 'Mutations',
@@ -104,24 +111,6 @@ class AdaptiveLearningEngine {
         prerequisites: ['mutations', 'genetic_recombination'],
         difficulty: 'advanced',
         related: ['recombinant_dna', 'cloning', 'restriction_enzymes']
-      },
-      'bacterial_genetics': {
-        name: 'Bacterial Genetics',
-        prerequisites: ['mutations'],
-        difficulty: 'intermediate',
-        related: ['transduction', 'bacterial_sex', 'plasmid_vectors']
-      },
-      'yeast_genetics': {
-        name: 'Yeast Genetics',
-        prerequisites: ['genetic_recombination'],
-        difficulty: 'intermediate',
-        related: ['mating_type', 'gene_silencing']
-      },
-      'drosophila_genetics': {
-        name: 'Drosophila Genetics',
-        prerequisites: ['genetic_mapping'],
-        difficulty: 'advanced',
-        related: ['fate_mapping', 'tissue_specific_expression']
       }
     };
 
@@ -146,67 +135,45 @@ class AdaptiveLearningEngine {
   }
 
   personalizeExplanation(concept, knowledgeLevel) {
+    // Pre-defined explanations - no dynamic content
     const explanations = {
       'mutations': {
-        1: "Mutations are changes in DNA sequence that can affect how genes work. They can be small changes in single DNA bases or larger changes involving whole chromosome segments.",
-        2: "Mutations include point mutations (single base changes), deletions (removed DNA), and insertions (added DNA). These changes can be spontaneous or induced by mutagens.",
-        3: "Point mutations can be transitions (purine to purine) or transversions (purine to pyrimidine). Frameshift mutations from insertions/deletions alter the reading frame of genes.",
-        4: "Mutations are classified by their effects: silent, missense, nonsense, or frameshift. DNA repair systems constantly correct mutations, but some escape detection.",
-        5: "Mutation mechanisms include tautomeric shifts, oxidative damage, and replication errors. The mutation rate is balanced between evolutionary adaptation and genetic stability."
+        1: "Mutations are changes in DNA sequence that can affect how genes work.",
+        2: "Mutations include point mutations, deletions, and insertions that alter DNA.",
+        3: "Point mutations can be transitions or transversions, while frameshift mutations alter reading frames.",
+        4: "Mutations are classified by effects: silent, missense, nonsense, or frameshift with specific repair mechanisms.",
+        5: "Mutation mechanisms include tautomeric shifts and replication errors balanced between adaptation and stability."
       },
       'genetic_recombination': {
-        1: "Genetic recombination mixes DNA from different sources, creating new combinations of genes. This happens during meiosis in sexual reproduction.",
-        2: "Recombination involves breaking and rejoining DNA molecules. In bacteria, it can occur through conjugation, transformation, or transduction.",
-        3: "The Holliday model explains recombination through strand invasion, branch migration, and resolution. Key proteins like RecA facilitate the process in E. coli.",
-        4: "Recombination frequency measures genetic distance. Chi sites in E. coli stimulate recombination through the RecBCD pathway.",
-        5: "Molecular mechanisms include single-strand invasion, D-loop formation, and double Holliday junction resolution with specific enzymatic complexes."
-      },
-      'genetic_mapping': {
-        1: "Genetic mapping finds where genes are located on chromosomes. It uses recombination frequencies to determine gene positions.",
-        2: "Mapping involves crossing organisms and analyzing offspring. The frequency of recombination between genes indicates their distance on chromosomes.",
-        3: "Three-point crosses determine gene order and distances. Interference measures how one crossover affects nearby crossovers.",
-        4: "Deletion mapping uses overlapping deletions to locate genes. Physical mapping connects genetic maps to DNA sequences.",
-        5: "High-resolution mapping combines genetic and molecular data. SNP mapping and genome-wide association studies extend traditional approaches."
-      },
-      'complementation': {
-        1: "Complementation tests whether two mutations are in the same gene. If two mutants can fix each other, they're in different genes.",
-        2: "In complementation tests, two mutant organisms are crossed. If offspring are normal, the mutations complement (different genes).",
-        3: "Cis-trans tests distinguish whether mutations affect the same functional unit. Trans configuration tests gene function across chromosomes.",
-        4: "Complementation groups define functional genes. Non-complementing mutations define alleles of the same gene.",
-        5: "Molecular complementation reveals protein interactions. Dominant negative mutations interfere with wild-type function in heterozygotes."
-      },
-      'transposable_elements': {
-        1: "Transposable elements are 'jumping genes' that can move around the genome. They were discovered by Barbara McClintock in corn.",
-        2: "IS elements are simple bacterial transposons with inverted repeats. Transposons can carry additional genes like antibiotic resistance.",
-        3: "Transposition can be replicative or conservative. Retrotransposons move via RNA intermediates using reverse transcriptase.",
-        4: "P elements in Drosophila are used for genetic transformation. Transposons create genetic diversity but can cause mutations.",
-        5: "Transposition mechanisms involve transposase enzymes, target site duplication, and complex regulatory systems controlling mobility."
-      },
-      'genetic_engineering': {
-        1: "Genetic engineering changes DNA to give organisms new traits. Restriction enzymes cut DNA at specific sequences for recombination.",
-        2: "Recombinant DNA technology combines DNA from different sources. Plasmids and phage vectors carry foreign DNA into cells.",
-        3: "Cloning produces many copies of specific DNA sequences. DNA sequencing reads the exact order of bases in DNA.",
-        4: "PCR amplifies specific DNA regions exponentially. Southern blots detect specific DNA sequences using hybridization.",
-        5: "Advanced techniques include site-directed mutagenesis, CRISPR editing, and synthetic biology for designing genetic systems."
+        1: "Genetic recombination mixes DNA from different sources creating new gene combinations.",
+        2: "Recombination involves breaking and rejoining DNA during meiosis or bacterial exchange.",
+        3: "Holliday model explains recombination through strand invasion and branch migration.",
+        4: "Recombination frequency measures genetic distance with specific protein mechanisms.",
+        5: "Molecular mechanisms include single-strand invasion and double Holliday junction resolution."
       }
     };
 
     const level = Math.min(5, Math.max(1, Math.round(knowledgeLevel)));
-    return explanations[concept]?.[level] || `I'll explain ${concept} at your knowledge level (${level}/5).`;
+    return explanations[concept]?.[level] || `I'll explain ${concept} at knowledge level ${level}.`;
   }
 
   analyzeUnderstanding(conversationHistory) {
     let score = 0.5;
     const recentMessages = conversationHistory.slice(-10);
-    const confusionIndicators = ['confused', 'don\'t understand', 'what does', 'explain again', '?', 'how come'];
-    const understandingIndicators = ['I see', 'that makes sense', 'understood', 'thanks', 'clear', 'got it'];
     
+    // Simple analysis without complex processing
     const confusionCount = recentMessages.filter(msg => 
-      confusionIndicators.some(indicator => msg.message?.toLowerCase().includes(indicator))
+      msg.message && typeof msg.message === 'string' && 
+      (msg.message.toLowerCase().includes('?') || 
+       msg.message.toLowerCase().includes('confused') ||
+       msg.message.toLowerCase().includes('don\'t understand'))
     ).length;
     
     const understandingCount = recentMessages.filter(msg => 
-      understandingIndicators.some(indicator => msg.message?.toLowerCase().includes(indicator))
+      msg.message && typeof msg.message === 'string' &&
+      (msg.message.toLowerCase().includes('understand') ||
+       msg.message.toLowerCase().includes('clear') ||
+       msg.message.toLowerCase().includes('thanks'))
     ).length;
     
     score += (understandingCount - confusionCount) * 0.1;
@@ -214,12 +181,15 @@ class AdaptiveLearningEngine {
   }
 
   analyzeQuestionComplexity(question) {
-    const beginnerKeywords = ['what is', 'basic', 'simple', 'define'];
-    const advancedKeywords = ['mechanism', 'regulation', 'specific', 'detailed', 'how does', 'why does', 'molecular basis'];
+    if (typeof question !== 'string') return 'medium';
     
-    if (advancedKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
+    const lowerQuestion = question.toLowerCase();
+    const beginnerKeywords = ['what is', 'basic', 'simple', 'define'];
+    const advancedKeywords = ['mechanism', 'regulation', 'molecular', 'detailed'];
+    
+    if (advancedKeywords.some(keyword => lowerQuestion.includes(keyword))) {
       return 'high';
-    } else if (beginnerKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
+    } else if (beginnerKeywords.some(keyword => lowerQuestion.includes(keyword))) {
       return 'low';
     }
     return 'medium';
@@ -240,86 +210,70 @@ class ReasoningEngine {
   }
 
   initializeFactBase() {
+    // Static fact base - no external dependencies
     return {
       'mutations': {
         description: 'DNA sequence changes that create genetic variation',
         types: ['point_mutations', 'deletions', 'insertions', 'frameshift'],
-        effects: ['silent', 'missense', 'nonsense', 'neutral'],
         concept: 'mutations'
       },
       'genetic_recombination': {
         description: 'Process of breaking and rejoining DNA to create new gene combinations',
         mechanisms: ['homologous', 'site_specific', 'transposition'],
-        key_proteins: ['RecA', 'RecBCD', 'RuvABC'],
         concept: 'genetic_recombination'
       },
       'genetic_mapping': {
         description: 'Determining relative positions of genes on chromosomes',
         methods: ['recombination_frequency', 'deletion_mapping', 'physical_mapping'],
-        applications: ['gene_cloning', 'disease_gene_identification'],
         concept: 'genetic_mapping'
-      },
-      'complementation': {
-        description: 'Test to determine if mutations are in the same or different genes',
-        configurations: ['cis', 'trans'],
-        outcomes: ['complementation', 'non_complementation'],
-        concept: 'complementation'
-      },
-      'transposable_elements': {
-        description: 'Mobile genetic elements that can change position in genome',
-        classes: ['IS_elements', 'transposons', 'retrotransposons'],
-        mechanisms: ['cut_paste', 'copy_paste', 'replicative'],
-        concept: 'transposable_elements'
-      },
-      'genetic_engineering': {
-        description: 'Direct manipulation of genes using biotechnology',
-        tools: ['restriction_enzymes', 'DNA_ligase', 'vectors', 'PCR'],
-        applications: ['recombinant_proteins', 'gene_therapy', 'GMOs'],
-        concept: 'genetic_engineering'
-      },
-      'bacterial_genetics': {
-        description: 'Genetic analysis and manipulation in bacteria',
-        techniques: ['transformation', 'conjugation', 'transduction'],
-        systems: ['plasmid_vectors', 'phage_vectors', 'bacterial_artificial_chromosomes'],
-        concept: 'bacterial_genetics'
       }
     };
   }
 
   async generateReasonedResponse(message, context, userSession) {
-    // Step 1: Analyze query intent
-    const intent = this.analyzeIntent(message);
-    
-    // Step 2: Retrieve relevant facts
-    const relevantFacts = this.retrieveRelevantFacts(message, context);
-    
-    // Step 3: Generate reasoning chain
-    const reasoningSteps = this.buildReasoningChain(message, relevantFacts, userSession, intent);
-    
-    // Step 4: Formulate response
-    const answer = this.formulateAnswer(message, reasoningSteps, userSession.knowledgeLevel, relevantFacts);
-    
-    return {
-      answer: answer,
-      reasoning: reasoningSteps,
-      conceptsUsed: relevantFacts.map(fact => fact.concept),
-      intent: intent
-    };
+    try {
+      // Step 1: Analyze query intent
+      const intent = this.analyzeIntent(message);
+      
+      // Step 2: Retrieve relevant facts
+      const relevantFacts = this.retrieveRelevantFacts(message, context);
+      
+      // Step 3: Generate reasoning chain
+      const reasoningSteps = this.buildReasoningChain(message, relevantFacts, userSession, intent);
+      
+      // Step 4: Formulate response
+      const answer = this.formulateAnswer(message, reasoningSteps, userSession.knowledgeLevel, relevantFacts);
+      
+      return {
+        answer: answer,
+        reasoning: reasoningSteps,
+        conceptsUsed: relevantFacts.map(fact => fact.concept),
+        intent: intent
+      };
+    } catch (error) {
+      console.error('Reasoning engine error:', error);
+      return {
+        answer: "I encountered an error processing your genetics question. Please try again.",
+        reasoning: ['Error in reasoning process'],
+        conceptsUsed: [],
+        intent: 'error'
+      };
+    }
   }
 
   analyzeIntent(message) {
+    if (typeof message !== 'string') return 'general_information';
+    
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('how') || lowerMessage.includes('process') || lowerMessage.includes('steps')) {
+    if (lowerMessage.includes('how') || lowerMessage.includes('process')) {
       return 'process_explanation';
     } else if (lowerMessage.includes('difference between') || lowerMessage.includes('compare')) {
       return 'comparison';
-    } else if (lowerMessage.includes('why') || lowerMessage.includes('reason')) {
+    } else if (lowerMessage.includes('why')) {
       return 'reasoning';
     } else if (lowerMessage.includes('what is') || lowerMessage.includes('define')) {
       return 'definition';
-    } else if (lowerMessage.includes('example') || lowerMessage.includes('instance')) {
-      return 'example';
     } else {
       return 'general_information';
     }
@@ -330,71 +284,55 @@ class ReasoningEngine {
     
     steps.push(`User question: "${question}"`);
     steps.push(`Detected intent: ${intent}`);
-    steps.push(`User knowledge level: ${userSession.knowledgeLevel.toFixed(1)}/5`);
+    steps.push(`User knowledge level: ${userSession.knowledgeLevel.toFixed(1)}`);
     
     if (facts.length > 0) {
-      steps.push(`Found ${facts.length} relevant facts:`);
-      facts.forEach((fact, index) => {
-        steps.push(`- ${fact.description}`);
-      });
-    } else {
-      steps.push(`No specific facts found, using general knowledge`);
+      steps.push(`Found ${facts.length} relevant genetics facts`);
     }
     
-    steps.push(`Adapting explanation complexity for knowledge level ${Math.round(userSession.knowledgeLevel)}`);
+    steps.push(`Adapting explanation complexity`);
     
     return steps;
   }
 
   formulateAnswer(question, reasoningSteps, knowledgeLevel, relevantFacts) {
+    if (typeof question !== 'string') {
+      return "Please ask a question about genetics.";
+    }
+    
     const lowerQuestion = question.toLowerCase();
     
     // Determine which genetics concept is being asked about
-    let primaryConcept = 'general_genetics';
-    if (lowerQuestion.includes('mutation')) {
-      primaryConcept = 'mutations';
-    } else if (lowerQuestion.includes('recombination')) {
+    let primaryConcept = 'mutations'; // default
+    if (lowerQuestion.includes('recombination')) {
       primaryConcept = 'genetic_recombination';
-    } else if (lowerQuestion.includes('mapping') || lowerQuestion.includes('map')) {
+    } else if (lowerQuestion.includes('mapping')) {
       primaryConcept = 'genetic_mapping';
     } else if (lowerQuestion.includes('complementation')) {
       primaryConcept = 'complementation';
-    } else if (lowerQuestion.includes('transpos') || lowerQuestion.includes('jumping gene')) {
+    } else if (lowerQuestion.includes('transpos')) {
       primaryConcept = 'transposable_elements';
-    } else if (lowerQuestion.includes('genetic engineering') || lowerQuestion.includes('recombinant')) {
+    } else if (lowerQuestion.includes('genetic engineering')) {
       primaryConcept = 'genetic_engineering';
-    } else if (lowerQuestion.includes('bacterial genetics') || lowerQuestion.includes('bacteria')) {
-      primaryConcept = 'bacterial_genetics';
-    } else if (lowerQuestion.includes('yeast genetics')) {
-      primaryConcept = 'yeast_genetics';
-    } else if (lowerQuestion.includes('drosophila') || lowerQuestion.includes('fruit fly')) {
-      primaryConcept = 'drosophila_genetics';
     }
     
     // Use learning engine for personalized response
     const learningEngine = new AdaptiveLearningEngine();
-    learningEngine.initializeKnowledgeGraph();
     
     let response = learningEngine.personalizeExplanation(primaryConcept, knowledgeLevel);
     
     // Add context based on intent
     const intent = this.analyzeIntent(question);
-    if (intent === 'process_explanation' && relevantFacts.length > 0) {
-      const fact = relevantFacts[0];
-      if (fact.types || fact.mechanisms) {
-        const details = fact.types || fact.mechanisms;
-        response += `\n\nKey aspects include: ${details.join(', ')}.`;
-      }
-    } else if (intent === 'comparison') {
-      response += `\n\nWould you like me to compare this with related genetic concepts?`;
-    } else if (intent === 'example') {
-      response += `\n\nFor example, in E. coli genetics, ${primaryConcept.replace('_', ' ')} is studied using...`;
+    if (intent === 'process_explanation') {
+      response += ` This process involves specific genetic mechanisms that ensure accuracy.`;
     }
     
     return response;
   }
 
   retrieveRelevantFacts(message, context) {
+    if (typeof message !== 'string') return [];
+    
     const keywords = message.toLowerCase().split(' ');
     const relevantFacts = [];
     
@@ -402,8 +340,7 @@ class ReasoningEngine {
       const factText = JSON.stringify(fact).toLowerCase();
       if (keywords.some(keyword => 
         factText.includes(keyword) ||
-        concept.includes(keyword) ||
-        message.toLowerCase().includes(concept)
+        concept.includes(keyword)
       )) {
         relevantFacts.push({ concept, ...fact });
       }
@@ -413,4 +350,12 @@ class ReasoningEngine {
   }
 }
 
-module.exports = { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine };
+// Export for CommonJS (deployment compatibility)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine };
+}
+
+// Export for ES modules (if needed)
+if (typeof window !== 'undefined') {
+  window.GeneticsAI = { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine };
+}
