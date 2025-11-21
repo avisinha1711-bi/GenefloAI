@@ -37,19 +37,19 @@ async function buildEnhancedContext(message, userSession) {
 function generateFollowUpQuestions(response, conceptsUsed, knowledgeLevel) {
   const questionTemplates = {
     beginner: [
-      "Can you explain this in simpler terms?",
-      "What is a real-world example of this?",
-      "Why is this important in biology?"
+      "Can you explain this genetics concept in simpler terms?",
+      "What is a real-world example of this genetic principle?",
+      "Why is this important in genetic research?"
     ],
     intermediate: [
-      "How does this process work in detail?",
-      "What are the key molecules involved?",
-      "How is this regulated in the cell?"
+      "How does this genetic process work in detail?",
+      "What are the key experiments that demonstrated this?",
+      "How is this genetic mechanism regulated?"
     ],
     advanced: [
-      "What are the current research developments in this area?",
-      "How do mutations affect this process?",
-      "What are the medical applications of this knowledge?"
+      "What are the current research developments in this genetic area?",
+      "How do mutations affect this genetic process?",
+      "What are the medical applications of this genetic knowledge?"
     ]
   };
   
@@ -57,15 +57,27 @@ function generateFollowUpQuestions(response, conceptsUsed, knowledgeLevel) {
   if (knowledgeLevel <= 2) level = 'beginner';
   if (knowledgeLevel >= 4) level = 'advanced';
   
-  // Add concept-specific questions
+  // Add genetics-specific questions based on concepts used
   const conceptQuestions = [];
   conceptsUsed.forEach(concept => {
-    if (concept === 'dna_structure') {
-      conceptQuestions.push("How does DNA replication work?");
-    } else if (concept === 'transcription') {
-      conceptQuestions.push("What happens after transcription is complete?");
-    } else if (concept === 'translation') {
-      conceptQuestions.push("How are proteins modified after translation?");
+    if (concept === 'mutations') {
+      conceptQuestions.push("What are the different types of mutations and their effects?");
+      conceptQuestions.push("How do cells repair DNA damage?");
+    } else if (concept === 'genetic_recombination') {
+      conceptQuestions.push("What is the molecular mechanism of homologous recombination?");
+      conceptQuestions.push("How does recombination create genetic diversity?");
+    } else if (concept === 'genetic_mapping') {
+      conceptQuestions.push("How is genetic mapping used to find disease genes?");
+      conceptQuestions.push("What's the difference between genetic and physical maps?");
+    } else if (concept === 'complementation') {
+      conceptQuestions.push("How do complementation tests work in practice?");
+      conceptQuestions.push("What can we learn from cis-trans tests?");
+    } else if (concept === 'transposable_elements') {
+      conceptQuestions.push("How are transposable elements used in genetic engineering?");
+      conceptQuestions.push("What role do transposons play in evolution?");
+    } else if (concept === 'genetic_engineering') {
+      conceptQuestions.push("What are the main tools used in genetic engineering?");
+      conceptQuestions.push("How is recombinant DNA technology applied in medicine?");
     }
   });
   
@@ -75,17 +87,25 @@ function generateFollowUpQuestions(response, conceptsUsed, knowledgeLevel) {
 async function updateUserModel(userSession, message, response) {
   const updatedLevel = learningEngine.assessKnowledgeLevel(userSession, message);
   
-  // Learn concepts from interaction
+  // Learn genetics concepts from interaction
   const lowerMessage = message.toLowerCase();
-  if (lowerMessage.includes('dna')) {
-    memorySystem.learnConcept(userSession.id, 'dna_structure', 0.3);
-  }
-  if (lowerMessage.includes('transcription') || lowerMessage.includes('rna')) {
-    memorySystem.learnConcept(userSession.id, 'transcription', 0.3);
-  }
-  if (lowerMessage.includes('translation') || lowerMessage.includes('protein')) {
-    memorySystem.learnConcept(userSession.id, 'translation', 0.3);
-  }
+  const geneticsKeywords = {
+    'mutations': ['mutation', 'mutant', 'mutagen'],
+    'genetic_recombination': ['recombination', 'crossing over', 'recA', 'holliday'],
+    'genetic_mapping': ['mapping', 'genetic map', 'recombination frequency'],
+    'complementation': ['complementation', 'cis trans', 'dominant recessive'],
+    'transposable_elements': ['transposon', 'jumping gene', 'IS element', 'retrotransposon'],
+    'genetic_engineering': ['genetic engineering', 'recombinant', 'cloning', 'restriction enzyme'],
+    'bacterial_genetics': ['bacterial genetics', 'transduction', 'conjugation', 'transformation'],
+    'yeast_genetics': ['yeast genetics', 'mating type'],
+    'drosophila_genetics': ['drosophila', 'fruit fly', 'fate mapping']
+  };
+  
+  Object.entries(geneticsKeywords).forEach(([concept, keywords]) => {
+    if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+      memorySystem.learnConcept(userSession.id, concept, 0.3);
+    }
+  });
   
   return {
     ...userSession,
@@ -98,16 +118,17 @@ async function updateUserModel(userSession, message, response) {
   };
 }
 
-// ENHANCED Chat endpoint - SINGLE INTEGRATED VERSION
+// ENHANCED Chat endpoint - GENETICS FOCUSED
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, userSession = { 
       id: 'default-user', 
       knowledgeLevel: 3,
-      conversationHistory: []
+      conversationHistory: [],
+      interests: ['genetics', 'molecular_biology']
     } } = req.body;
     
-    console.log('Received chat request:', { message, userId: userSession.id });
+    console.log('Received genetics chat request:', { message, userId: userSession.id });
     
     // 1. Build enhanced context
     const context = await buildEnhancedContext(message, userSession);
@@ -134,7 +155,7 @@ app.post('/api/chat', async (req, res) => {
       reasonedResponse.answer
     );
     
-    // 5. Generate follow-up questions
+    // 5. Generate genetics-focused follow-up questions
     const suggestedQuestions = generateFollowUpQuestions(
       reasonedResponse.answer,
       reasonedResponse.conceptsUsed,
@@ -147,13 +168,14 @@ app.post('/api/chat', async (req, res) => {
       updatedSession: updatedSession,
       suggestedQuestions: suggestedQuestions,
       conceptsUsed: reasonedResponse.conceptsUsed,
-      confidence: 0.85 // Simulated confidence score
+      confidence: 0.85,
+      focusArea: 'genetics'
     });
     
   } catch (error) {
-    console.error('Enhanced chat error:', error);
+    console.error('Genetics chat error:', error);
     res.status(500).json({ 
-      error: 'I encountered an error processing your question. Please try again.',
+      error: 'I encountered an error processing your genetics question. Please try again.',
       details: error.message 
     });
   }
@@ -164,11 +186,19 @@ app.get('/api/memory/:userId', (req, res) => {
   const userId = req.params.userId;
   try {
     const memories = memorySystem.getRelevantMemories(userId, "");
+    const geneticsConcepts = memories.knownConcepts.filter(concept => 
+      concept.includes('mutations') || 
+      concept.includes('recombination') ||
+      concept.includes('genetic') ||
+      concept.includes('transpos')
+    );
+    
     res.json({
       userId: userId,
       memorySummary: {
         totalConversations: memories.recentConversations.length,
-        knownConcepts: memories.knownConcepts.length,
+        geneticsConcepts: geneticsConcepts.length,
+        knownConcepts: memories.knownConcepts,
         recentInteractions: memories.recentConversations.slice(-5)
       }
     });
@@ -186,34 +216,49 @@ app.delete('/api/memory/:userId', (req, res) => {
   });
 });
 
-// Knowledge assessment endpoint
-app.post('/api/assess-knowledge', (req, res) => {
+// Genetics knowledge assessment endpoint
+app.post('/api/assess-genetics-knowledge', (req, res) => {
   const { userId, responses } = req.body;
   
   try {
-    // Simulate knowledge assessment
+    // Simulate genetics knowledge assessment
+    const geneticsTopics = [
+      'Mutations and DNA Repair',
+      'Genetic Recombination',
+      'Genetic Mapping',
+      'Complementation Tests',
+      'Transposable Elements',
+      'Genetic Engineering',
+      'Bacterial Genetics'
+    ];
+    
     const assessment = {
       userId: userId,
-      molecularBiologyScore: Math.random() * 100,
-      recommendedTopics: ['DNA Replication', 'Protein Synthesis', 'Gene Regulation'],
+      geneticsKnowledgeScore: Math.random() * 100,
+      strongAreas: geneticsTopics.slice(0, 3),
+      weakAreas: geneticsTopics.slice(3, 5),
+      recommendedTopics: ['Advanced Genetic Mapping', 'Molecular Mechanisms of Recombination'],
       knowledgeLevel: Math.min(5, Math.max(1, Math.floor(Math.random() * 5) + 1)),
-      assessmentDate: new Date().toISOString()
+      assessmentDate: new Date().toISOString(),
+      focusArea: 'Genetics'
     };
     
     res.json(assessment);
   } catch (error) {
-    res.status(500).json({ error: 'Assessment failed' });
+    res.status(500).json({ error: 'Genetics assessment failed' });
   }
 });
 
-// User session initialization
+// User session initialization with genetics focus
 app.post('/api/init-session', (req, res) => {
-  const { userId } = req.body;
+  const { userId, interests = ['genetics'] } = req.body;
   
   const newSession = {
-    id: userId || 'user-' + Date.now(),
+    id: userId || 'genetics-user-' + Date.now(),
     knowledgeLevel: 3, // Default intermediate
     conversationHistory: [],
+    interests: interests,
+    focusArea: 'genetics',
     createdAt: new Date().toISOString(),
     lastInteraction: new Date().toISOString()
   };
@@ -221,20 +266,51 @@ app.post('/api/init-session', (req, res) => {
   res.json(newSession);
 });
 
-// Get learning progress
-app.get('/api/progress/:userId', (req, res) => {
+// Get genetics learning progress
+app.get('/api/genetics-progress/:userId', (req, res) => {
   const userId = req.params.userId;
   const memories = memorySystem.getRelevantMemories(userId, "");
   
+  const geneticsConcepts = memories.knownConcepts.filter(concept => 
+    concept.includes('mutations') || 
+    concept.includes('recombination') ||
+    concept.includes('genetic') ||
+    concept.includes('transpos')
+  );
+  
   const progress = {
     userId: userId,
-    conceptsMastered: memories.knownConcepts.length,
-    totalInteractions: memories.recentConversations.length,
-    estimatedLevel: memories.knownConcepts.length > 5 ? 'Intermediate' : 'Beginner',
-    learningStreak: Math.floor(Math.random() * 10) + 1 // Simulated
+    geneticsConceptsMastered: geneticsConcepts.length,
+    totalGeneticsInteractions: memories.recentConversations.filter(conv => 
+      conv.toLowerCase().includes('mutation') ||
+      conv.toLowerCase().includes('genetic') ||
+      conv.toLowerCase().includes('recombination') ||
+      conv.toLowerCase().includes('transpos')
+    ).length,
+    estimatedGeneticsLevel: geneticsConcepts.length > 5 ? 'Advanced' : geneticsConcepts.length > 2 ? 'Intermediate' : 'Beginner',
+    learningStreak: Math.floor(Math.random() * 10) + 1,
+    focusArea: 'Genetics'
   };
   
   res.json(progress);
+});
+
+// Genetics concept exploration endpoint
+app.get('/api/genetics-concepts/:concept', (req, res) => {
+  const concept = req.params.concept;
+  const learningEngine = new AdaptiveLearningEngine();
+  
+  const conceptInfo = learningEngine.knowledgeGraph.get(concept);
+  if (conceptInfo) {
+    res.json({
+      concept: concept,
+      information: conceptInfo,
+      relatedConcepts: learningEngine.getSuggestedConcepts(concept, 3),
+      difficulty: conceptInfo.difficulty
+    });
+  } else {
+    res.status(404).json({ error: 'Genetics concept not found' });
+  }
 });
 
 // Serve the main page
@@ -251,15 +327,17 @@ app.get('/api/health', (req, res) => {
       learning: 'Operational', 
       reasoning: 'Operational'
     },
+    focus: 'Genetics Education',
     timestamp: new Date().toISOString()
   });
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`GenefloAI Server running on port ${PORT}`);
-  console.log(`Access your chatbot at: http://localhost:${PORT}`);
+  console.log(`GenefloAI Genetics Server running on port ${PORT}`);
+  console.log(`Access your genetics chatbot at: http://localhost:${PORT}`);
   console.log('AI Systems: Memory ✓ | Adaptive Learning ✓ | Reasoning ✓');
+  console.log('Focus Area: Genetics & Molecular Biology');
 });
 
 module.exports = app;
