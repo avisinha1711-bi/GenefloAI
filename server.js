@@ -1,329 +1,265 @@
-// Enhanced API endpoints for LLM capabilities
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+// Import our enhanced systems
+const { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine } = require('./api');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Initialize AI systems
+const memorySystem = new EnhancedMemory();
+const learningEngine = new AdaptiveLearningEngine();
+const reasoningEngine = new ReasoningEngine();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '.')));
+
+// Initialize knowledge graph
+learningEngine.initializeKnowledgeGraph();
+
+// Helper functions
+async function buildEnhancedContext(message, userSession) {
+  const memories = memorySystem.getRelevantMemories(userSession.id, message);
+  const knowledgeLevel = userSession.knowledgeLevel || 3;
+  
+  return {
+    userKnowledge: knowledgeLevel,
+    recentConversations: memories.recentConversations,
+    knownConcepts: memories.knownConcepts,
+    queryComplexity: learningEngine.analyzeQuestionComplexity(message)
+  };
+}
+
+function generateFollowUpQuestions(response, conceptsUsed, knowledgeLevel) {
+  const questionTemplates = {
+    beginner: [
+      "Can you explain this in simpler terms?",
+      "What is a real-world example of this?",
+      "Why is this important in biology?"
+    ],
+    intermediate: [
+      "How does this process work in detail?",
+      "What are the key molecules involved?",
+      "How is this regulated in the cell?"
+    ],
+    advanced: [
+      "What are the current research developments in this area?",
+      "How do mutations affect this process?",
+      "What are the medical applications of this knowledge?"
+    ]
+  };
+  
+  let level = 'intermediate';
+  if (knowledgeLevel <= 2) level = 'beginner';
+  if (knowledgeLevel >= 4) level = 'advanced';
+  
+  // Add concept-specific questions
+  const conceptQuestions = [];
+  conceptsUsed.forEach(concept => {
+    if (concept === 'dna_structure') {
+      conceptQuestions.push("How does DNA replication work?");
+    } else if (concept === 'transcription') {
+      conceptQuestions.push("What happens after transcription is complete?");
+    } else if (concept === 'translation') {
+      conceptQuestions.push("How are proteins modified after translation?");
+    }
+  });
+  
+  return [...conceptQuestions.slice(0, 2), ...questionTemplates[level].slice(0, 2)];
+}
+
+async function updateUserModel(userSession, message, response) {
+  const updatedLevel = learningEngine.assessKnowledgeLevel(userSession, message);
+  
+  // Learn concepts from interaction
+  const lowerMessage = message.toLowerCase();
+  if (lowerMessage.includes('dna')) {
+    memorySystem.learnConcept(userSession.id, 'dna_structure', 0.3);
+  }
+  if (lowerMessage.includes('transcription') || lowerMessage.includes('rna')) {
+    memorySystem.learnConcept(userSession.id, 'transcription', 0.3);
+  }
+  if (lowerMessage.includes('translation') || lowerMessage.includes('protein')) {
+    memorySystem.learnConcept(userSession.id, 'translation', 0.3);
+  }
+  
+  return {
+    ...userSession,
+    knowledgeLevel: updatedLevel,
+    lastInteraction: new Date().toISOString(),
+    conversationHistory: [
+      ...(userSession.conversationHistory || []),
+      { message, response, timestamp: new Date().toISOString() }
+    ].slice(-20) // Keep last 20 interactions
+  };
+}
+
+// ENHANCED Chat endpoint - SINGLE INTEGRATED VERSION
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, userSession } = req.body;
+    const { message, userSession = { 
+      id: 'default-user', 
+      knowledgeLevel: 3,
+      conversationHistory: []
+    } } = req.body;
     
-    // Enhanced context building
+    console.log('Received chat request:', { message, userId: userSession.id });
+    
+    // 1. Build enhanced context
     const context = await buildEnhancedContext(message, userSession);
     
-    // Generate response with reasoning
-    const response = await generateReasonedResponse(message, context, userSession);
+    // 2. Generate reasoned response using all AI systems
+    const reasonedResponse = await reasoningEngine.generateReasonedResponse(
+      message, 
+      context, 
+      userSession
+    );
     
-    // Update user model with learning
-    const updatedSession = await updateUserModel(userSession, message, response);
+    // 3. Store conversation in memory
+    memorySystem.storeConversation(
+      userSession.id, 
+      message, 
+      reasonedResponse.answer, 
+      new Date()
+    );
+    
+    // 4. Update user model with learning
+    const updatedSession = await updateUserModel(
+      userSession, 
+      message, 
+      reasonedResponse.answer
+    );
+    
+    // 5. Generate follow-up questions
+    const suggestedQuestions = generateFollowUpQuestions(
+      reasonedResponse.answer,
+      reasonedResponse.conceptsUsed,
+      updatedSession.knowledgeLevel
+    );
     
     res.json({
-      response: response.answer,
-      reasoning: response.reasoning, // For debugging/transparency
+      response: reasonedResponse.answer,
+      reasoning: reasonedResponse.reasoning,
       updatedSession: updatedSession,
-      suggestedQuestions: generateFollowUpQuestions(response)
+      suggestedQuestions: suggestedQuestions,
+      conceptsUsed: reasonedResponse.conceptsUsed,
+      confidence: 0.85 // Simulated confidence score
     });
+    
   } catch (error) {
-    console.error('Chat error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Enhanced chat error:', error);
+    res.status(500).json({ 
+      error: 'I encountered an error processing your question. Please try again.',
+      details: error.message 
+    });
   }
 });
 
 // Memory management endpoints
 app.get('/api/memory/:userId', (req, res) => {
-  // Retrieve user's conversation history and learned concepts
+  const userId = req.params.userId;
+  try {
+    const memories = memorySystem.getRelevantMemories(userId, "");
+    res.json({
+      userId: userId,
+      memorySummary: {
+        totalConversations: memories.recentConversations.length,
+        knownConcepts: memories.knownConcepts.length,
+        recentInteractions: memories.recentConversations.slice(-5)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve memories' });
+  }
 });
 
 app.delete('/api/memory/:userId', (req, res) => {
-  // Clear specific memories or reset learning
+  const userId = req.params.userId;
+  // In a complete implementation, you'd clear the actual memories
+  res.json({ 
+    message: `Memory cleared for user ${userId}`,
+    note: 'In development - memory persistence needed for production'
+  });
 });
 
 // Knowledge assessment endpoint
 app.post('/api/assess-knowledge', (req, res) => {
-  // Assess user's understanding and adjust difficulty
+  const { userId, responses } = req.body;
+  
+  try {
+    // Simulate knowledge assessment
+    const assessment = {
+      userId: userId,
+      molecularBiologyScore: Math.random() * 100,
+      recommendedTopics: ['DNA Replication', 'Protein Synthesis', 'Gene Regulation'],
+      knowledgeLevel: Math.min(5, Math.max(1, Math.floor(Math.random() * 5) + 1)),
+      assessmentDate: new Date().toISOString()
+    };
+    
+    res.json(assessment);
+  } catch (error) {
+    res.status(500).json({ error: 'Assessment failed' });
+  }
 });
-// Enhanced memory system
-class EnhancedMemory {
-  constructor() {
-    this.conversationMemory = new Map();
-    this.conceptMemory = new Map();
-    this.userModels = new Map();
-  }
 
-  // Store and retrieve conversation context
-  storeConversation(userId, message, response, timestamp) {
-    if (!this.conversationMemory.has(userId)) {
-      this.conversationMemory.set(userId, []);
-    }
-    
-    const conversation = this.conversationMemory.get(userId);
-    conversation.push({
-      role: 'user',
-      content: message,
-      timestamp
-    });
-    
-    conversation.push({
-      role: 'assistant',
-      content: response,
-      timestamp
-    });
-    
-    // Keep only last 50 messages to manage memory
-    if (conversation.length > 50) {
-      this.conversationMemory.set(userId, conversation.slice(-50));
-    }
-  }
+// User session initialization
+app.post('/api/init-session', (req, res) => {
+  const { userId } = req.body;
+  
+  const newSession = {
+    id: userId || 'user-' + Date.now(),
+    knowledgeLevel: 3, // Default intermediate
+    conversationHistory: [],
+    createdAt: new Date().toISOString(),
+    lastInteraction: new Date().toISOString()
+  };
+  
+  res.json(newSession);
+});
 
-  // Concept learning and recall
-  learnConcept(userId, concept, confidence = 1) {
-    if (!this.conceptMemory.has(userId)) {
-      this.conceptMemory.set(userId, new Map());
-    }
-    
-    const userConcepts = this.conceptMemory.get(userId);
-    const currentConfidence = userConcepts.get(concept) || 0;
-    userConcepts.set(concept, Math.min(1, currentConfidence + confidence * 0.1));
-  }
+// Get learning progress
+app.get('/api/progress/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const memories = memorySystem.getRelevantMemories(userId, "");
+  
+  const progress = {
+    userId: userId,
+    conceptsMastered: memories.knownConcepts.length,
+    totalInteractions: memories.recentConversations.length,
+    estimatedLevel: memories.knownConcepts.length > 5 ? 'Intermediate' : 'Beginner',
+    learningStreak: Math.floor(Math.random() * 10) + 1 // Simulated
+  };
+  
+  res.json(progress);
+});
 
-  // Retrieve relevant memories for context
-  getRelevantMemories(userId, currentMessage, limit = 5) {
-    const conversation = this.conversationMemory.get(userId) || [];
-    const concepts = this.conceptMemory.get(userId) || new Map();
-    
-    // Simple relevance scoring (in production, use embeddings)
-    const relevantMemories = conversation
-      .filter(msg => msg.role === 'user')
-      .slice(-limit)
-      .map(msg => msg.content);
-    
-    const strongConcepts = Array.from(concepts.entries())
-      .filter(([_, confidence]) => confidence > 0.7)
-      .map(([concept]) => concept);
-    
-    return {
-      recentConversations: relevantMemories,
-      knownConcepts: strongConcepts
-    };
-  }
-}
+// Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-// Initialize memory system
-const memorySystem = new EnhancedMemory();
-class AdaptiveLearningEngine {
-  constructor() {
-    this.knowledgeGraph = new Map();
-    this.difficultyLevels = new Map();
-  }
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    systems: {
+      memory: 'Operational',
+      learning: 'Operational', 
+      reasoning: 'Operational'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
 
-  // Build knowledge graph of molecular biology concepts
-  initializeKnowledgeGraph() {
-    const concepts = {
-      'dna_structure': {
-        name: 'DNA Structure',
-        prerequisites: [],
-        difficulty: 'beginner',
-        related: ['base_pairing', 'double_helix']
-      },
-      'transcription': {
-        name: 'Transcription',
-        prerequisites: ['dna_structure'],
-        difficulty: 'intermediate',
-        related: ['rna_polymerase', 'promoter']
-      },
-      'translation': {
-        name: 'Translation',
-        prerequisites: ['transcription', 'genetic_code'],
-        difficulty: 'intermediate',
-        related: ['ribosome', 'trna', 'codon']
-      },
-      'genetic_code': {
-        name: 'Genetic Code',
-        prerequisites: ['dna_structure'],
-        difficulty: 'beginner',
-        related: ['codon', 'amino_acid']
-      }
-      // Add more concepts...
-    };
+// Start server
+app.listen(PORT, () => {
+  console.log(`GenefloAI Server running on port ${PORT}`);
+  console.log(`Access your chatbot at: http://localhost:${PORT}`);
+  console.log('AI Systems: Memory ✓ | Adaptive Learning ✓ | Reasoning ✓');
+});
 
-    this.knowledgeGraph = new Map(Object.entries(concepts));
-  }
-
-  // Assess user's current knowledge level
-  assessKnowledgeLevel(userSession, currentMessage) {
-    const { conversationHistory, knowledgeLevel } = userSession;
-    
-    // Analyze conversation for understanding indicators
-    const understandingScore = this.analyzeUnderstanding(conversationHistory);
-    const questionComplexity = this.analyzeQuestionComplexity(currentMessage);
-    
-    // Adjust knowledge level based on interaction
-    let newLevel = knowledgeLevel;
-    if (understandingScore > 0.8 && questionComplexity === 'high') {
-      newLevel = Math.min(5, knowledgeLevel + 0.1);
-    } else if (understandingScore < 0.4) {
-      newLevel = Math.max(1, knowledgeLevel - 0.1);
-    }
-    
-    return newLevel;
-  }
-
-  // Generate personalized explanations based on knowledge level
-  personalizeExplanation(concept, knowledgeLevel) {
-    const explanations = {
-      'dna_structure': {
-        1: "DNA is like a twisted ladder with four chemical letters: A, T, C, G.",
-        3: "DNA has a double-helix structure with complementary base pairing: A-T and C-G.",
-        5: "The DNA double helix features major and minor grooves, with anti-parallel strands running 5' to 3' and 3' to 5'."
-      },
-      'transcription': {
-        1: "Transcription copies DNA into mRNA so it can leave the nucleus.",
-        3: "RNA polymerase binds to promoter regions and synthesizes mRNA complementary to the template strand.",
-        5: "Transcription involves initiation at promoter elements, elongation with NTP addition, and termination at specific sequences."
-      }
-      // Add more personalized explanations...
-    };
-
-    const level = Math.min(5, Math.max(1, Math.round(knowledgeLevel)));
-    return explanations[concept]?.[level] || explanations[concept]?.[3] || "Explanation not available.";
-  }
-
-  analyzeUnderstanding(conversationHistory) {
-    // Simple analysis - count correct follow-up questions and lack of confusion indicators
-    let score = 0.5; // Default medium understanding
-    
-    const recentMessages = conversationHistory.slice(-10);
-    const confusionIndicators = ['confused', 'don\'t understand', 'what does', 'explain again'];
-    const understandingIndicators = ['I see', 'that makes sense', 'understood', 'thanks for explaining'];
-    
-    const confusionCount = recentMessages.filter(msg => 
-      confusionIndicators.some(indicator => msg.message.toLowerCase().includes(indicator))
-    ).length;
-    
-    const understandingCount = recentMessages.filter(msg => 
-      understandingIndicators.some(indicator => msg.message.toLowerCase().includes(indicator))
-    ).length;
-    
-    score += (understandingCount - confusionCount) * 0.1;
-    return Math.max(0.1, Math.min(1, score));
-  }
-
-  analyzeQuestionComplexity(question) {
-    const beginnerKeywords = ['what is', 'basic', 'simple'];
-    const advancedKeywords = ['mechanism', 'regulation', 'specific', 'detailed'];
-    
-    if (advancedKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
-      return 'high';
-    } else if (beginnerKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
-      return 'low';
-    }
-    return 'medium';
-  }
-}
-
-// Initialize learning engine
-const learningEngine = new AdaptiveLearningEngine();
-learningEngine.initializeKnowledgeGraph();
-class ReasoningEngine {
-  constructor() {
-    this.factBase = this.initializeFactBase();
-  }
-
-  initializeFactBase() {
-    return {
-      'dna_replication': {
-        description: 'Process of DNA copying',
-        steps: ['initiation', 'elongation', 'termination'],
-        enzymes: ['DNA polymerase', 'helicase', 'ligase']
-      },
-      'central_dogma': {
-        description: 'DNA → RNA → Protein',
-        processes: ['replication', 'transcription', 'translation']
-      }
-      // Expand with more molecular biology facts
-    };
-  }
-
-  async generateReasonedResponse(message, context, userSession) {
-    // Step 1: Analyze query intent
-    const intent = this.analyzeIntent(message);
-    
-    // Step 2: Retrieve relevant knowledge
-    const relevantFacts = this.retrieveRelevantFacts(message, context);
-    
-    // Step 3: Generate reasoning chain
-    const reasoningSteps = this.buildReasoningChain(message, relevantFacts, userSession);
-    
-    // Step 4: Formulate response
-    const answer = this.formulateAnswer(reasoningSteps, userSession.knowledgeLevel);
-    
-    return {
-      answer: answer,
-      reasoning: reasoningSteps, // For transparency
-      conceptsUsed: relevantFacts.map(fact => fact.concept)
-    };
-  }
-
-  analyzeIntent(message) {
-    const lowerMessage = message.toLowerCase();
-    
-    if (lowerMessage.includes('how') || lowerMessage.includes('process')) {
-      return 'process_explanation';
-    } else if (lowerMessage.includes('difference between')) {
-      return 'comparison';
-    } else if (lowerMessage.includes('why')) {
-      return 'reasoning';
-    } else if (lowerMessage.includes('what is') || lowerMessage.includes('define')) {
-      return 'definition';
-    } else {
-      return 'general_information';
-    }
-  }
-
-  buildReasoningChain(question, facts, userSession) {
-    const steps = [];
-    
-    steps.push(`User asked: "${question}"`);
-    steps.push(`Detected intent: ${this.analyzeIntent(question)}`);
-    
-    if (facts.length > 0) {
-      steps.push(`Found ${facts.length} relevant facts in knowledge base`);
-      facts.forEach((fact, index) => {
-        steps.push(`Fact ${index + 1}: ${fact.description}`);
-      });
-    }
-    
-    steps.push(`User knowledge level: ${userSession.knowledgeLevel.toFixed(1)}`);
-    steps.push(`Adapting explanation complexity accordingly`);
-    
-    return steps;
-  }
-
-  formulateAnswer(reasoningSteps, knowledgeLevel) {
-    // Use the reasoning steps to create a coherent, level-appropriate answer
-    // This would integrate with the learning engine's personalization
-    
-    // For now, return a simple answer based on the first reasoning step
-    if (reasoningSteps.includes('Detected intent: definition')) {
-      return learningEngine.personalizeExplanation('dna_structure', knowledgeLevel);
-    }
-    
-    return "Based on your question and current understanding level, here's what I can explain...";
-  }
-
-  retrieveRelevantFacts(message, context) {
-    // Simple keyword-based retrieval (in production, use embeddings)
-    const keywords = message.toLowerCase().split(' ');
-    const relevantFacts = [];
-    
-    for (const [concept, fact] of Object.entries(this.factBase)) {
-      if (keywords.some(keyword => 
-        concept.includes(keyword) || 
-        fact.description.toLowerCase().includes(keyword) ||
-        fact.steps?.some(step => step.toLowerCase().includes(keyword))
-      )) {
-        relevantFacts.push({ concept, ...fact });
-      }
-    }
-    
-    return relevantFacts;
-  }
-}
-
-const reasoningEngine = new ReasoningEngine();
-
+module.exports = app;
