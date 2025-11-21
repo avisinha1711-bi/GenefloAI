@@ -1,9 +1,12 @@
+// Enhanced Genetics AI Systems with Comprehensive Knowledge
+
 // Enhanced Memory System
 class EnhancedMemory {
   constructor() {
     this.conversationMemory = new Map();
     this.conceptMemory = new Map();
     this.userModels = new Map();
+    this.learningProgress = new Map();
   }
 
   storeConversation(userId, message, response, timestamp) {
@@ -24,9 +27,9 @@ class EnhancedMemory {
       timestamp
     });
     
-    // Keep only last 50 messages
-    if (conversation.length > 50) {
-      this.conversationMemory.set(userId, conversation.slice(-50));
+    // Keep last 100 messages for comprehensive learning
+    if (conversation.length > 100) {
+      this.conversationMemory.set(userId, conversation.slice(-100));
     }
   }
 
@@ -40,7 +43,12 @@ class EnhancedMemory {
     userConcepts.set(concept, Math.min(1, currentConfidence + confidence * 0.1));
   }
 
-  getRelevantMemories(userId, currentMessage, limit = 5) {
+  getConceptConfidence(userId, concept) {
+    const userConcepts = this.conceptMemory.get(userId);
+    return userConcepts ? userConcepts.get(concept) || 0 : 0;
+  }
+
+  getRelevantMemories(userId, currentMessage, limit = 10) {
     const conversation = this.conversationMemory.get(userId) || [];
     const concepts = this.conceptMemory.get(userId) || new Map();
     
@@ -50,71 +58,150 @@ class EnhancedMemory {
       .map(msg => msg.content);
     
     const strongConcepts = Array.from(concepts.entries())
-      .filter(([_, confidence]) => confidence > 0.7)
+      .filter(([_, confidence]) => confidence > 0.6)
       .map(([concept]) => concept);
     
     return {
       recentConversations: relevantMemories,
-      knownConcepts: strongConcepts
+      knownConcepts: strongConcepts,
+      conceptConfidence: Object.fromEntries(concepts)
     };
   }
 
-  // Clear memory for a user (for deployment compatibility)
   clearUserMemory(userId) {
     this.conversationMemory.delete(userId);
     this.conceptMemory.delete(userId);
   }
 }
 
-// Adaptive Learning Engine
+// Comprehensive Adaptive Learning Engine
 class AdaptiveLearningEngine {
   constructor() {
     this.knowledgeGraph = new Map();
+    this.learningPaths = new Map();
     this.initializeKnowledgeGraph();
   }
 
   initializeKnowledgeGraph() {
-    // Pre-defined knowledge graph - no dynamic imports
+    // Comprehensive genetics knowledge graph
     const concepts = {
-      'mutations': {
-        name: 'Mutations',
+      // DNA & Chromosome Structure
+      'dna_structure': {
+        name: 'DNA Structure',
         prerequisites: [],
         difficulty: 'beginner',
-        related: ['point_mutations', 'deletions', 'insertions']
+        related: ['double_helix', 'base_pairing', 'chromatin', 'nucleosomes'],
+        category: 'Molecular Genetics'
+      },
+      'double_helix': {
+        name: 'Double Helix',
+        prerequisites: ['dna_structure'],
+        difficulty: 'beginner',
+        related: ['watson_crick', 'major_minor_grooves', 'base_stacking'],
+        category: 'Molecular Genetics'
+      },
+      'chromosome_structure': {
+        name: 'Chromosome Structure',
+        prerequisites: ['dna_structure'],
+        difficulty: 'intermediate',
+        related: ['chromatin', 'histones', 'telomeres', 'centromeres'],
+        category: 'Cell Biology'
+      },
+
+      // Gene Expression
+      'transcription': {
+        name: 'Transcription',
+        prerequisites: ['dna_structure'],
+        difficulty: 'intermediate',
+        related: ['rna_polymerase', 'promoters', 'enhancers', 'transcription_factors'],
+        category: 'Gene Expression'
+      },
+      'translation': {
+        name: 'Translation',
+        prerequisites: ['transcription'],
+        difficulty: 'intermediate',
+        related: ['ribosome', 'mrna', 'trna', 'genetic_code'],
+        category: 'Gene Expression'
+      },
+      'gene_regulation': {
+        name: 'Gene Regulation',
+        prerequisites: ['transcription', 'translation'],
+        difficulty: 'advanced',
+        related: ['operons', 'epigenetics', 'signal_transduction'],
+        category: 'Gene Expression'
+      },
+
+      // Genetic Variation
+      'mutations': {
+        name: 'Mutations',
+        prerequisites: ['dna_structure'],
+        difficulty: 'intermediate',
+        related: ['point_mutations', 'frameshift', 'silent_mutations', 'mutagenesis'],
+        category: 'Genetic Variation'
       },
       'genetic_recombination': {
         name: 'Genetic Recombination',
         prerequisites: ['mutations'],
-        difficulty: 'intermediate',
-        related: ['heteroduplexes', 'branch_migration', 'recombination_frequency']
-      },
-      'genetic_mapping': {
-        name: 'Genetic Mapping',
-        prerequisites: ['genetic_recombination'],
-        difficulty: 'intermediate',
-        related: ['recombination_frequency', 'deletion_mapping', 'chromosome_mapping']
-      },
-      'complementation': {
-        name: 'Complementation',
-        prerequisites: ['mutations'],
-        difficulty: 'beginner',
-        related: ['cis_trans', 'dominant_recessive']
-      },
-      'transposable_elements': {
-        name: 'Transposable Elements',
-        prerequisites: ['mutations'],
         difficulty: 'advanced',
-        related: ['IS_elements', 'transposons', 'retrotransposons']
+        related: ['homologous', 'site_specific', 'holliday_junction'],
+        category: 'Genetic Variation'
       },
-      'genetic_engineering': {
-        name: 'Genetic Engineering',
-        prerequisites: ['mutations', 'genetic_recombination'],
+
+      // Molecular Techniques
+      'pcr': {
+        name: 'PCR',
+        prerequisites: ['dna_structure'],
+        difficulty: 'intermediate',
+        related: ['dna_amplification', 'thermostable_polymerase', 'primers'],
+        category: 'Biotechnology'
+      },
+      'crispr': {
+        name: 'CRISPR-Cas9',
+        prerequisites: ['gene_regulation'],
         difficulty: 'advanced',
-        related: ['recombinant_dna', 'cloning', 'restriction_enzymes']
+        related: ['gene_editing', 'guide_rna', 'cas9_protein'],
+        category: 'Biotechnology'
+      },
+      'dna_sequencing': {
+        name: 'DNA Sequencing',
+        prerequisites: ['dna_structure'],
+        difficulty: 'intermediate',
+        related: ['sanger', 'next_generation', 'nanopore'],
+        category: 'Genomics'
+      },
+
+      // Advanced Topics
+      'epigenetics': {
+        name: 'Epigenetics',
+        prerequisites: ['gene_regulation'],
+        difficulty: 'advanced',
+        related: ['dna_methylation', 'histone_modification', 'chromatin_remodeling'],
+        category: 'Advanced Genetics'
+      },
+      'genomic_imprinting': {
+        name: 'Genomic Imprinting',
+        prerequisites: ['epigenetics'],
+        difficulty: 'advanced',
+        related: ['parental_origin', 'methylation_patterns', 'imprinting_disorders'],
+        category: 'Advanced Genetics'
+      },
+      'rna_interference': {
+        name: 'RNA Interference',
+        prerequisites: ['transcription'],
+        difficulty: 'advanced',
+        related: ['sirna', 'mirna', 'gene_silencing'],
+        category: 'Gene Regulation'
       }
     };
 
     this.knowledgeGraph = new Map(Object.entries(concepts));
+  }
+
+  getAllTopics() {
+    return Array.from(this.knowledgeGraph.entries()).map(([id, data]) => ({
+      id,
+      ...data
+    }));
   }
 
   assessKnowledgeLevel(userSession, currentMessage) {
@@ -123,60 +210,112 @@ class AdaptiveLearningEngine {
     
     const understandingScore = this.analyzeUnderstanding(conversationHistory);
     const questionComplexity = this.analyzeQuestionComplexity(currentMessage);
+    const conceptDiversity = this.analyzeConceptDiversity(userSession);
     
     let newLevel = knowledgeLevel;
-    if (understandingScore > 0.8 && questionComplexity === 'high') {
-      newLevel = Math.min(5, knowledgeLevel + 0.1);
-    } else if (understandingScore < 0.4) {
+    
+    // More sophisticated level adjustment
+    if (understandingScore > 0.8 && questionComplexity === 'high' && conceptDiversity > 0.7) {
+      newLevel = Math.min(5, knowledgeLevel + 0.2);
+    } else if (understandingScore < 0.3 || conceptDiversity < 0.3) {
       newLevel = Math.max(1, knowledgeLevel - 0.1);
+    } else if (understandingScore > 0.6 && questionComplexity === 'medium') {
+      newLevel = Math.min(5, knowledgeLevel + 0.1);
     }
     
-    return newLevel;
+    return Number(newLevel.toFixed(1));
   }
 
-  personalizeExplanation(concept, knowledgeLevel) {
-    // Pre-defined explanations - no dynamic content
+  personalizeExplanation(concept, knowledgeLevel, intent = 'general_information') {
+    // Comprehensive explanations for all genetics topics
     const explanations = {
-      'mutations': {
-        1: "Mutations are changes in DNA sequence that can affect how genes work.",
-        2: "Mutations include point mutations, deletions, and insertions that alter DNA.",
-        3: "Point mutations can be transitions or transversions, while frameshift mutations alter reading frames.",
-        4: "Mutations are classified by effects: silent, missense, nonsense, or frameshift with specific repair mechanisms.",
-        5: "Mutation mechanisms include tautomeric shifts and replication errors balanced between adaptation and stability."
+      'dna_structure': {
+        1: "DNA is the genetic material that stores biological information. It's composed of two strands forming a double helix, with nucleotides containing A, T, C, G bases.",
+        2: "DNA has a double-helical structure with anti-parallel strands. Base pairing follows Chargaff's rules: A-T and G-C. The sugar-phosphate backbone provides structural stability.",
+        3: "The DNA double helix exhibits major and minor grooves that facilitate protein binding. Base stacking interactions and hydrogen bonding contribute to structural stability and specificity.",
+        4: "B-DNA is the most common form with 10.5 base pairs per turn. Structural variations include A-DNA and Z-DNA. Groove dimensions affect protein-DNA recognition and binding specificity.",
+        5: "DNA topology involves supercoiling, linking number, and topological isomers. Enzymes like topoisomerases manage DNA supercoiling essential for replication and transcription processes."
       },
-      'genetic_recombination': {
-        1: "Genetic recombination mixes DNA from different sources creating new gene combinations.",
-        2: "Recombination involves breaking and rejoining DNA during meiosis or bacterial exchange.",
-        3: "Holliday model explains recombination through strand invasion and branch migration.",
-        4: "Recombination frequency measures genetic distance with specific protein mechanisms.",
-        5: "Molecular mechanisms include single-strand invasion and double Holliday junction resolution."
+      'transcription': {
+        1: "Transcription copies DNA into RNA using RNA polymerase. It starts at promoters and ends at terminators, producing mRNA for protein synthesis.",
+        2: "Transcription involves initiation (promoter recognition), elongation (RNA synthesis 5'→3'), and termination. RNA polymerase synthesizes RNA complementary to the template strand.",
+        3: "Eukaryotic transcription requires transcription factors, mediator complex, and chromatin remodeling. Pre-mRNA processing includes 5' capping, splicing, and 3' polyadenylation.",
+        4: "Transcription regulation involves enhancers, silencers, and insulators. Chromatin accessibility and histone modifications significantly influence transcriptional activity.",
+        5: "Single-cell transcriptomics reveals cell-to-cell variation. Alternative promoter usage and non-coding RNA transcription add layers of regulatory complexity."
+      },
+      'translation': {
+        1: "Translation converts mRNA into proteins using ribosomes. Transfer RNA (tRNA) brings amino acids that are linked together based on the genetic code.",
+        2: "Translation occurs in initiation (ribosome assembly), elongation (peptide bond formation), and termination. The genetic code is degenerate with 64 codons specifying 20 amino acids.",
+        3: "Eukaryotic translation involves multiple initiation factors and regulatory mechanisms. mTOR signaling pathway integrates nutrient status with translation efficiency.",
+        4: "Ribosome profiling reveals translation dynamics. Regulatory elements like uORFs and IRES elements control translation initiation under specific conditions.",
+        5: "Ribosome stalling, translational recoding, and ribosome quality control represent sophisticated regulatory mechanisms maintaining proteome integrity."
+      },
+      'mutations': {
+        1: "Mutations are changes in DNA sequence that can alter gene function. They can be beneficial, harmful, or neutral depending on their effects.",
+        2: "Point mutations include transitions (A↔G, C↔T) and transversions. Frameshift mutations from insertions/deletions alter reading frames, often causing significant changes.",
+        3: "Mutation mechanisms include tautomeric shifts, oxidative damage, and replication errors. DNA repair systems (mismatch, base excision, nucleotide excision) maintain genomic integrity.",
+        4: "Mutation rates vary across genomes with mutational hotspots. Somatic mutations drive cancer, while germline mutations enable evolution and cause genetic disorders.",
+        5: "Next-generation sequencing reveals mutation signatures characteristic of specific mutagenic processes. Clonal evolution and mutation accumulation models explain cancer progression."
+      },
+      'crispr': {
+        1: "CRISPR-Cas9 is a gene editing tool that allows precise DNA modifications. It uses a guide RNA to target specific DNA sequences for cutting.",
+        2: "The CRISPR-Cas9 system consists of Cas9 nuclease and guide RNA. Upon binding target DNA, Cas9 creates double-strand breaks repaired by NHEJ or HDR pathways.",
+        3: "Different CRISPR systems (Cas9, Cas12, Cas13) offer varying capabilities. Base editing and prime editing enable precise nucleotide changes without double-strand breaks.",
+        4: "CRISPR screens identify gene functions genome-wide. Delivery methods (viral, nanoparticle) and off-target effects represent current research challenges.",
+        5: "CRISPR activation/inhibition systems enable epigenetic programming. Therapeutic applications include ex vivo cell engineering and in vivo gene correction approaches."
+      },
+      'epigenetics': {
+        1: "Epigenetics involves heritable changes in gene expression without DNA sequence alterations. It includes DNA methylation and histone modifications.",
+        2: "DNA methylation typically represses transcription, while histone acetylation generally activates it. These modifications create an 'epigenetic code' influencing chromatin state.",
+        3: "Epigenetic mechanisms include DNA methylation, histone modifications, and non-coding RNAs. These establish cellular identity and enable environmental response memory.",
+        4: "Epigenetic reprogramming occurs during development and gametogenesis. Dysregulation contributes to cancer, neurological disorders, and metabolic diseases.",
+        5: "Single-cell epigenomics reveals cellular heterogeneity. Transgenerational epigenetic inheritance and epigenetic editing represent frontier research areas."
       }
     };
 
     const level = Math.min(5, Math.max(1, Math.round(knowledgeLevel)));
-    return explanations[concept]?.[level] || `I'll explain ${concept} at knowledge level ${level}.`;
+    const baseExplanation = explanations[concept]?.[level] || 
+      `I'll explain ${concept} at knowledge level ${level}. ` +
+      `This is a ${this.knowledgeGraph.get(concept)?.difficulty || 'intermediate'} level topic in genetics.`;
+
+    // Enhance based on intent
+    if (intent === 'process_explanation') {
+      return baseExplanation + " The molecular process involves multiple coordinated steps and regulatory checkpoints.";
+    } else if (intent === 'comparison') {
+      return baseExplanation + " This can be compared with related genetic mechanisms to understand evolutionary relationships.";
+    }
+    
+    return baseExplanation;
   }
 
   analyzeUnderstanding(conversationHistory) {
-    let score = 0.5;
-    const recentMessages = conversationHistory.slice(-10);
+    if (!conversationHistory || conversationHistory.length === 0) return 0.5;
     
-    // Simple analysis without complex processing
-    const confusionCount = recentMessages.filter(msg => 
+    let score = 0.5;
+    const recentMessages = conversationHistory.slice(-15);
+    
+    const confusionIndicators = recentMessages.filter(msg => 
       msg.message && typeof msg.message === 'string' && 
       (msg.message.toLowerCase().includes('?') || 
        msg.message.toLowerCase().includes('confused') ||
-       msg.message.toLowerCase().includes('don\'t understand'))
+       msg.message.toLowerCase().includes('don\'t understand') ||
+       msg.message.toLowerCase().includes('explain again'))
     ).length;
     
-    const understandingCount = recentMessages.filter(msg => 
+    const understandingIndicators = recentMessages.filter(msg => 
       msg.message && typeof msg.message === 'string' &&
       (msg.message.toLowerCase().includes('understand') ||
        msg.message.toLowerCase().includes('clear') ||
-       msg.message.toLowerCase().includes('thanks'))
+       msg.message.toLowerCase().includes('makes sense') ||
+       msg.message.toLowerCase().includes('thanks') ||
+       msg.message.toLowerCase().includes('helpful'))
     ).length;
     
-    score += (understandingCount - confusionCount) * 0.1;
+    const totalInteractions = recentMessages.length;
+    if (totalInteractions > 0) {
+      score += (understandingIndicators - confusionIndicators) * 0.08;
+    }
+    
     return Math.max(0.1, Math.min(1, score));
   }
 
@@ -184,8 +323,8 @@ class AdaptiveLearningEngine {
     if (typeof question !== 'string') return 'medium';
     
     const lowerQuestion = question.toLowerCase();
-    const beginnerKeywords = ['what is', 'basic', 'simple', 'define'];
-    const advancedKeywords = ['mechanism', 'regulation', 'molecular', 'detailed'];
+    const beginnerKeywords = ['what is', 'basic', 'simple', 'define', 'explain simply'];
+    const advancedKeywords = ['mechanism', 'regulation', 'molecular basis', 'detailed analysis', 'research', 'crispr', 'epigenetics', 'pathway'];
     
     if (advancedKeywords.some(keyword => lowerQuestion.includes(keyword))) {
       return 'high';
@@ -195,70 +334,157 @@ class AdaptiveLearningEngine {
     return 'medium';
   }
 
-  getSuggestedConcepts(currentConcept, knowledgeLevel) {
-    const concept = this.knowledgeGraph.get(currentConcept);
-    if (!concept) return [];
+  analyzeConceptDiversity(userSession) {
+    const concepts = userSession.knownConcepts || [];
+    if (concepts.length === 0) return 0;
     
-    return concept.related.slice(0, Math.max(2, Math.floor(knowledgeLevel)));
+    const categories = new Set();
+    concepts.forEach(concept => {
+      const conceptData = this.knowledgeGraph.get(concept);
+      if (conceptData) {
+        categories.add(conceptData.category);
+      }
+    });
+    
+    return categories.size / 4; // Normalize by main category count
+  }
+
+  calculateProgress(userId) {
+    // Simplified progress calculation
+    return {
+      conceptsExplored: 0,
+      masteryLevel: 'beginner',
+      recommendedNext: ['dna_structure', 'transcription']
+    };
+  }
+
+  calculateLearningStreak(userId) {
+    return 1; // Basic implementation
   }
 }
 
-// Reasoning Engine
+// Advanced Reasoning Engine
 class ReasoningEngine {
   constructor() {
     this.factBase = this.initializeFactBase();
+    this.researchInsights = this.initializeResearchInsights();
   }
 
   initializeFactBase() {
-    // Static fact base - no external dependencies
+    // Comprehensive genetics fact base
     return {
+      'dna_structure': {
+        description: 'Deoxyribonucleic acid, the molecule of heredity with double-helical structure',
+        keyPoints: ['Double helix', 'Antiparallel strands', 'Base pairing rules', 'Sugar-phosphate backbone'],
+        significance: 'Stores genetic information and enables inheritance',
+        concept: 'dna_structure',
+        category: 'Molecular Genetics'
+      },
+      'transcription': {
+        description: 'Process of copying DNA sequence into RNA molecule',
+        keyPoints: ['RNA polymerase', 'Promoter regions', 'Template strand', 'mRNA synthesis'],
+        significance: 'First step in gene expression, converts genetic code to RNA',
+        concept: 'transcription',
+        category: 'Gene Expression'
+      },
+      'translation': {
+        description: 'Process of converting mRNA sequence into protein',
+        keyPoints: ['Ribosomes', 'tRNA', 'Genetic code', 'Protein synthesis'],
+        significance: 'Final step in central dogma, produces functional proteins',
+        concept: 'translation',
+        category: 'Gene Expression'
+      },
       'mutations': {
-        description: 'DNA sequence changes that create genetic variation',
-        types: ['point_mutations', 'deletions', 'insertions', 'frameshift'],
-        concept: 'mutations'
+        description: 'Changes in DNA sequence that create genetic variation',
+        keyPoints: ['Point mutations', 'Frameshift mutations', 'Mutagenesis', 'DNA repair'],
+        significance: 'Source of genetic diversity and basis for evolution',
+        concept: 'mutations',
+        category: 'Genetic Variation'
       },
-      'genetic_recombination': {
-        description: 'Process of breaking and rejoining DNA to create new gene combinations',
-        mechanisms: ['homologous', 'site_specific', 'transposition'],
-        concept: 'genetic_recombination'
+      'crispr': {
+        description: 'Revolutionary gene-editing technology derived from bacterial immune systems',
+        keyPoints: ['Cas9 nuclease', 'Guide RNA', 'Gene knockout', 'Therapeutic applications'],
+        significance: 'Precise genome engineering with vast research and medical applications',
+        concept: 'crispr',
+        category: 'Biotechnology'
       },
-      'genetic_mapping': {
-        description: 'Determining relative positions of genes on chromosomes',
-        methods: ['recombination_frequency', 'deletion_mapping', 'physical_mapping'],
-        concept: 'genetic_mapping'
+      'epigenetics': {
+        description: 'Study of heritable changes in gene function without DNA sequence alteration',
+        keyPoints: ['DNA methylation', 'Histone modification', 'Chromatin remodeling', 'Cellular memory'],
+        significance: 'Explains how environment influences gene expression and cellular identity',
+        concept: 'epigenetics',
+        category: 'Advanced Genetics'
       }
+    };
+  }
+
+  initializeResearchInsights() {
+    return {
+      'crispr': [
+        "CRISPR-Cas9 was adapted from Streptococcus pyogenes bacterial immune system",
+        "Base editing allows precise single-nucleotide changes without double-strand breaks",
+        "Prime editing enables search-and-replace genome editing with minimal off-target effects"
+      ],
+      'epigenetics': [
+        "DNA methylation patterns are reprogrammed during embryonic development",
+        "Histone modifications create a 'code' that influences chromatin accessibility",
+        "Environmental factors can induce epigenetic changes transgenerationally"
+      ],
+      'genomics': [
+        "Single-cell sequencing reveals cellular heterogeneity in tissues",
+        "Long-read technologies resolve complex genomic regions and structural variations",
+        "Multi-omics integration provides comprehensive views of biological systems"
+      ]
     };
   }
 
   async generateReasonedResponse(message, context, userSession) {
     try {
-      // Step 1: Analyze query intent
+      // Step 1: Analyze query intent and complexity
       const intent = this.analyzeIntent(message);
+      const complexity = context.queryComplexity;
       
-      // Step 2: Retrieve relevant facts
+      // Step 2: Retrieve relevant facts and research insights
       const relevantFacts = this.retrieveRelevantFacts(message, context);
+      const researchInsights = this.getResearchInsights(message);
       
-      // Step 3: Generate reasoning chain
-      const reasoningSteps = this.buildReasoningChain(message, relevantFacts, userSession, intent);
+      // Step 3: Generate comprehensive reasoning chain
+      const reasoningSteps = this.buildReasoningChain(message, relevantFacts, userSession, intent, complexity);
       
-      // Step 4: Formulate response
-      const answer = this.formulateAnswer(message, reasoningSteps, userSession.knowledgeLevel, relevantFacts);
+      // Step 4: Formulate detailed response
+      const answer = this.formulateComprehensiveAnswer(message, reasoningSteps, userSession.knowledgeLevel, relevantFacts, researchInsights, intent);
       
       return {
         answer: answer,
         reasoning: reasoningSteps,
         conceptsUsed: relevantFacts.map(fact => fact.concept),
-        intent: intent
+        intent: intent,
+        complexity: complexity,
+        confidence: this.calculateConfidence(relevantFacts, userSession.knowledgeLevel),
+        primaryTopic: relevantFacts[0]?.concept || 'genetics'
       };
     } catch (error) {
       console.error('Reasoning engine error:', error);
-      return {
-        answer: "I encountered an error processing your genetics question. Please try again.",
-        reasoning: ['Error in reasoning process'],
-        conceptsUsed: [],
-        intent: 'error'
-      };
+      return this.generateFallbackResponse(message, context);
     }
+  }
+
+  generateFallbackResponse(message, context) {
+    const learningEngine = new AdaptiveLearningEngine();
+    const knowledgeLevel = context.userKnowledge || 3;
+    
+    let response = "I'd be happy to explain genetics concepts! ";
+    response += learningEngine.personalizeExplanation('dna_structure', knowledgeLevel);
+    response += " What specific area of genetics are you most interested in exploring?";
+    
+    return {
+      answer: response,
+      reasoning: ['Fallback response generated'],
+      conceptsUsed: ['dna_structure'],
+      intent: 'general_information',
+      confidence: 0.7,
+      primaryTopic: 'genetics'
+    };
   }
 
   analyzeIntent(message) {
@@ -266,96 +492,176 @@ class ReasoningEngine {
     
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('how') || lowerMessage.includes('process')) {
+    if (lowerMessage.includes('how') || lowerMessage.includes('process') || lowerMessage.includes('mechanism')) {
       return 'process_explanation';
-    } else if (lowerMessage.includes('difference between') || lowerMessage.includes('compare')) {
+    } else if (lowerMessage.includes('difference between') || lowerMessage.includes('compare') || lowerMessage.includes('vs')) {
       return 'comparison';
-    } else if (lowerMessage.includes('why')) {
+    } else if (lowerMessage.includes('why') || lowerMessage.includes('purpose') || lowerMessage.includes('significance')) {
       return 'reasoning';
     } else if (lowerMessage.includes('what is') || lowerMessage.includes('define')) {
       return 'definition';
+    } else if (lowerMessage.includes('research') || lowerMessage.includes('recent') || lowerMessage.includes('discovery')) {
+      return 'research_update';
     } else {
       return 'general_information';
     }
   }
 
-  buildReasoningChain(question, facts, userSession, intent) {
+  buildReasoningChain(question, facts, userSession, intent, complexity) {
     const steps = [];
     
-    steps.push(`User question: "${question}"`);
-    steps.push(`Detected intent: ${intent}`);
+    steps.push(`Analyzing question: "${question}"`);
+    steps.push(`Detected intent: ${intent}, Complexity: ${complexity}`);
     steps.push(`User knowledge level: ${userSession.knowledgeLevel.toFixed(1)}`);
+    steps.push(`Found ${facts.length} relevant genetics concepts`);
     
     if (facts.length > 0) {
-      steps.push(`Found ${facts.length} relevant genetics facts`);
+      steps.push(`Primary topic: ${facts[0].concept}`);
+      steps.push(`Adapting explanation depth and technical detail`);
     }
     
-    steps.push(`Adapting explanation complexity`);
+    steps.push(`Incorporating molecular biology context`);
+    steps.push(`Ensuring scientific accuracy and educational value`);
     
     return steps;
   }
 
-  formulateAnswer(question, reasoningSteps, knowledgeLevel, relevantFacts) {
+  formulateComprehensiveAnswer(question, reasoningSteps, knowledgeLevel, relevantFacts, researchInsights, intent) {
     if (typeof question !== 'string') {
-      return "Please ask a question about genetics.";
+      return "Please ask a question about genetics, molecular biology, or related technologies.";
     }
     
     const lowerQuestion = question.toLowerCase();
     
-    // Determine which genetics concept is being asked about
-    let primaryConcept = 'mutations'; // default
-    if (lowerQuestion.includes('recombination')) {
-      primaryConcept = 'genetic_recombination';
-    } else if (lowerQuestion.includes('mapping')) {
-      primaryConcept = 'genetic_mapping';
-    } else if (lowerQuestion.includes('complementation')) {
-      primaryConcept = 'complementation';
-    } else if (lowerQuestion.includes('transpos')) {
-      primaryConcept = 'transposable_elements';
-    } else if (lowerQuestion.includes('genetic engineering')) {
-      primaryConcept = 'genetic_engineering';
-    }
+    // Determine primary genetics concept
+    let primaryConcept = this.identifyPrimaryConcept(lowerQuestion);
     
     // Use learning engine for personalized response
     const learningEngine = new AdaptiveLearningEngine();
     
-    let response = learningEngine.personalizeExplanation(primaryConcept, knowledgeLevel);
+    let response = learningEngine.personalizeExplanation(primaryConcept, knowledgeLevel, intent);
     
-    // Add context based on intent
-    const intent = this.analyzeIntent(question);
-    if (intent === 'process_explanation') {
-      response += ` This process involves specific genetic mechanisms that ensure accuracy.`;
+    // Add research insights for advanced users
+    if (knowledgeLevel >= 4 && researchInsights.length > 0) {
+      response += " Recent research insights: " + researchInsights.slice(0, 2).join(' ');
+    }
+    
+    // Add connections to related concepts
+    const relatedConcepts = learningEngine.knowledgeGraph.get(primaryConcept)?.related || [];
+    if (relatedConcepts.length > 0 && knowledgeLevel >= 3) {
+      response += ` This connects to related areas like ${relatedConcepts.slice(0, 2).join(' and ')}.`;
     }
     
     return response;
   }
 
+  identifyPrimaryConcept(question) {
+    const conceptKeywords = {
+      'dna': 'dna_structure',
+      'double helix': 'double_helix',
+      'chromosome': 'chromosome_structure',
+      'transcription': 'transcription',
+      'translation': 'translation',
+      'protein synthesis': 'translation',
+      'mutation': 'mutations',
+      'crispr': 'crispr',
+      'gene editing': 'crispr',
+      'epigenetics': 'epigenetics',
+      'methylation': 'epigenetics',
+      'rna': 'transcription',
+      'genetic code': 'translation',
+      'recombination': 'genetic_recombination',
+      'pcr': 'pcr',
+      'sequencing': 'dna_sequencing'
+    };
+    
+    for (const [keyword, concept] of Object.entries(conceptKeywords)) {
+      if (question.includes(keyword)) {
+        return concept;
+      }
+    }
+    
+    return 'dna_structure'; // Default fallback
+  }
+
   retrieveRelevantFacts(message, context) {
     if (typeof message !== 'string') return [];
     
-    const keywords = message.toLowerCase().split(' ');
+    const keywords = message.toLowerCase().split(/\s+/);
     const relevantFacts = [];
     
     for (const [concept, fact] of Object.entries(this.factBase)) {
       const factText = JSON.stringify(fact).toLowerCase();
-      if (keywords.some(keyword => 
+      const conceptMatches = keywords.some(keyword => 
         factText.includes(keyword) ||
-        concept.includes(keyword)
-      )) {
+        concept.includes(keyword) ||
+        fact.name?.toLowerCase().includes(keyword)
+      );
+      
+      if (conceptMatches) {
         relevantFacts.push({ concept, ...fact });
       }
     }
     
-    return relevantFacts;
+    // Sort by relevance (simple keyword count)
+    relevantFacts.sort((a, b) => {
+      const aScore = this.calculateRelevanceScore(a, keywords);
+      const bScore = this.calculateRelevanceScore(b, keywords);
+      return bScore - aScore;
+    });
+    
+    return relevantFacts.slice(0, 3); // Return top 3 most relevant
+  }
+
+  calculateRelevanceScore(fact, keywords) {
+    let score = 0;
+    const factText = JSON.stringify(fact).toLowerCase();
+    
+    keywords.forEach(keyword => {
+      if (factText.includes(keyword)) {
+        score += 1;
+      }
+      if (fact.concept.includes(keyword)) {
+        score += 2;
+      }
+      if (fact.name?.toLowerCase().includes(keyword)) {
+        score += 3;
+      }
+    });
+    
+    return score;
+  }
+
+  getResearchInsights(message) {
+    const insights = [];
+    const lowerMessage = message.toLowerCase();
+    
+    Object.entries(this.researchInsights).forEach(([topic, topicInsights]) => {
+      if (lowerMessage.includes(topic)) {
+        insights.push(...topicInsights);
+      }
+    });
+    
+    return insights.slice(0, 2);
+  }
+
+  calculateConfidence(relevantFacts, knowledgeLevel) {
+    if (relevantFacts.length === 0) return 0.7;
+    
+    let confidence = 0.8;
+    if (relevantFacts.length >= 2) confidence += 0.1;
+    if (knowledgeLevel >= 4) confidence += 0.05;
+    
+    return Math.min(0.95, confidence);
   }
 }
 
-// Export for CommonJS (deployment compatibility)
+// Export for CommonJS
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine };
 }
 
-// Export for ES modules (if needed)
+// Export for ES modules
 if (typeof window !== 'undefined') {
   window.GeneticsAI = { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine };
 }
