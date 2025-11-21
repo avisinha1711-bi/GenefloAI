@@ -15,9 +15,7 @@ const reasoningEngine = new ReasoningEngine();
 
 // Middleware - simplified for deployment
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5500', '*'],
   credentials: true
 }));
 
@@ -25,12 +23,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Static files - ensure proper path
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '.'))); // Serve from root directory
 
 // Initialize knowledge graph on startup
 learningEngine.initializeKnowledgeGraph();
 
-// Helper functions - simplified and robust
+// Enhanced helper functions
 function buildEnhancedContext(message, userSession) {
   const memories = memorySystem.getRelevantMemories(userSession.id, message);
   const knowledgeLevel = userSession.knowledgeLevel || 3;
@@ -39,34 +37,62 @@ function buildEnhancedContext(message, userSession) {
     userKnowledge: knowledgeLevel,
     recentConversations: memories.recentConversations,
     knownConcepts: memories.knownConcepts,
-    queryComplexity: learningEngine.analyzeQuestionComplexity(message)
+    queryComplexity: learningEngine.analyzeQuestionComplexity(message),
+    learningStyle: userSession.learningStyle || 'comprehensive'
   };
 }
 
-function generateFollowUpQuestions(conceptsUsed, knowledgeLevel) {
-  // Pre-defined questions - no dynamic generation issues
-  const questions = [
-    "Would you like me to explain this genetics concept in more detail?",
-    "Can I provide an example of how this works in genetic research?",
-    "Would you like to explore related genetics topics?"
-  ];
+function generateFollowUpQuestions(conceptsUsed, knowledgeLevel, currentTopic) {
+  const questionBank = {
+    basic: [
+      "Would you like me to explain this in more detail?",
+      "Should I provide a real-world example of this concept?",
+      "Would you like to explore related genetic mechanisms?"
+    ],
+    intermediate: [
+      "Would you like to see how this applies in genetic research?",
+      "Should I explain the molecular mechanisms behind this?",
+      "Want to explore experimental evidence for this concept?"
+    ],
+    advanced: [
+      "Would you like to discuss recent research findings?",
+      "Should I explain the technical applications?",
+      "Want to explore controversies or open questions?"
+    ]
+  };
   
-  return questions.slice(0, 2);
+  let level = 'basic';
+  if (knowledgeLevel >= 4) level = 'advanced';
+  else if (knowledgeLevel >= 2.5) level = 'intermediate';
+  
+  return questionBank[level].slice(0, 2);
 }
 
 function updateUserModel(userSession, message, response) {
   try {
     const updatedLevel = learningEngine.assessKnowledgeLevel(userSession, message);
     
-    // Simple concept learning
+    // Enhanced concept learning
     if (typeof message === 'string') {
       const lowerMessage = message.toLowerCase();
-      if (lowerMessage.includes('mutation')) {
-        memorySystem.learnConcept(userSession.id, 'mutations', 0.3);
-      }
-      if (lowerMessage.includes('recombination')) {
-        memorySystem.learnConcept(userSession.id, 'genetic_recombination', 0.3);
-      }
+      const conceptMap = {
+        'mutation': 'mutations',
+        'recombination': 'genetic_recombination',
+        'transcription': 'transcription',
+        'translation': 'translation',
+        'dna': 'dna_structure',
+        'rna': 'rna_types',
+        'protein': 'protein_synthesis',
+        'gene': 'gene_expression',
+        'chromosome': 'chromosome_structure',
+        'genome': 'genome_organization'
+      };
+      
+      Object.entries(conceptMap).forEach(([keyword, concept]) => {
+        if (lowerMessage.includes(keyword)) {
+          memorySystem.learnConcept(userSession.id, concept, 0.3);
+        }
+      });
     }
     
     return {
@@ -76,58 +102,72 @@ function updateUserModel(userSession, message, response) {
       conversationHistory: [
         ...(userSession.conversationHistory || []),
         { message, response, timestamp: new Date().toISOString() }
-      ].slice(-10) // Keep smaller history for deployment
+      ].slice(-20) // Keep more history for better learning
     };
   } catch (error) {
     console.error('Error updating user model:', error);
-    return userSession; // Return original session on error
+    return userSession;
   }
 }
 
-// Health check endpoint - critical for deployment
+// Enhanced health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'healthy',
-    service: 'Genetics AI Chatbot',
+    service: 'Advanced Genetics AI Chatbot',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '2.0.0',
+    features: [
+      'Comprehensive genetics knowledge',
+      'Adaptive learning',
+      'Molecular biology expertise',
+      'Research-level content'
+    ]
   });
 });
 
-// Main chat endpoint with robust error handling
+// Enhanced main chat endpoint
 app.post('/api/chat', async (req, res) => {
-  // Set timeout for response
-  req.setTimeout(30000); // 30 second timeout
+  req.setTimeout(45000); // 45 second timeout for complex queries
   
   try {
     const { message, userSession = { 
       id: 'user-' + Date.now(), 
       knowledgeLevel: 3,
-      conversationHistory: []
+      conversationHistory: [],
+      interests: ['genetics', 'molecular_biology']
     } } = req.body;
 
-    // Validate input
-    if (!message || typeof message !== 'string') {
+    // Enhanced input validation
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({
         error: 'Invalid message format',
-        response: 'Please provide a valid text message about genetics.'
+        response: 'Please provide a valid question about genetics or molecular biology.'
       });
     }
 
-    // 1. Build enhanced context
-    const context = buildEnhancedContext(message, userSession);
+    const trimmedMessage = message.trim();
     
-    // 2. Generate reasoned response
-    const reasonedResponse = await reasoningEngine.generateReasonedResponse(
-      message, 
-      context, 
-      userSession
-    );
+    // 1. Build enhanced context
+    const context = buildEnhancedContext(trimmedMessage, userSession);
+    
+    // 2. Generate reasoned response with fallback
+    let reasonedResponse;
+    try {
+      reasonedResponse = await reasoningEngine.generateReasonedResponse(
+        trimmedMessage, 
+        context, 
+        userSession
+      );
+    } catch (reasoningError) {
+      console.error('Reasoning engine failed:', reasoningError);
+      reasonedResponse = reasoningEngine.generateFallbackResponse(trimmedMessage, context);
+    }
     
     // 3. Store conversation
     memorySystem.storeConversation(
       userSession.id, 
-      message, 
+      trimmedMessage, 
       reasonedResponse.answer, 
       new Date()
     );
@@ -135,39 +175,47 @@ app.post('/api/chat', async (req, res) => {
     // 4. Update user model
     const updatedSession = updateUserModel(
       userSession, 
-      message, 
+      trimmedMessage, 
       reasonedResponse.answer
     );
     
     // 5. Generate follow-up questions
     const suggestedQuestions = generateFollowUpQuestions(
       reasonedResponse.conceptsUsed,
-      updatedSession.knowledgeLevel
+      updatedSession.knowledgeLevel,
+      reasonedResponse.primaryTopic
     );
     
-    // Successful response
+    // Enhanced successful response
     res.json({
       response: reasonedResponse.answer,
       reasoning: reasonedResponse.reasoning,
       updatedSession: updatedSession,
       suggestedQuestions: suggestedQuestions,
       conceptsUsed: reasonedResponse.conceptsUsed,
-      confidence: 0.85,
-      focusArea: 'genetics',
+      confidence: reasonedResponse.confidence || 0.85,
+      focusArea: reasonedResponse.primaryTopic || 'genetics',
+      knowledgeLevel: updatedSession.knowledgeLevel,
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
     console.error('Chat endpoint error:', error);
+    
+    // Enhanced error response with helpful information
     res.status(500).json({ 
       error: 'Internal server error',
-      response: 'I encountered a technical issue. Please try your genetics question again.',
-      timestamp: new Date().toISOString()
+      response: 'I apologize for the technical issue. Here\'s a comprehensive genetics response: ' + 
+                'Molecular genetics explores DNA structure, gene expression, and genetic variation. ' +
+                'Key areas include DNA replication, transcription, translation, mutation mechanisms, ' +
+                'and genetic engineering. What specific topic can I help you with?',
+      timestamp: new Date().toISOString(),
+      fallback: true
     });
   }
 });
 
-// Memory management endpoints
+// Enhanced memory management
 app.get('/api/memory/:userId', (req, res) => {
   try {
     const userId = req.params.userId;
@@ -178,8 +226,12 @@ app.get('/api/memory/:userId', (req, res) => {
       memorySummary: {
         totalConversations: memories.recentConversations.length,
         knownConcepts: memories.knownConcepts,
-        recentInteractions: memories.recentConversations.slice(-3)
+        strongConcepts: memories.knownConcepts.filter(concept => 
+          memorySystem.getConceptConfidence(userId, concept) > 0.7
+        ),
+        recentInteractions: memories.recentConversations.slice(-5)
       },
+      learningProgress: learningEngine.calculateProgress(userId),
       status: 'success'
     });
   } catch (error) {
@@ -190,28 +242,41 @@ app.get('/api/memory/:userId', (req, res) => {
   }
 });
 
-// User session initialization
+// Enhanced user session initialization
 app.post('/api/init-session', (req, res) => {
   try {
-    const { userId, interests = ['genetics'] } = req.body;
+    const { userId, interests = ['genetics', 'molecular_biology', 'genomics'] } = req.body;
     
     const newSession = {
-      id: userId || 'genetics-user-' + Date.now(),
+      id: userId || 'genetics-learner-' + Date.now(),
       knowledgeLevel: 3,
       conversationHistory: [],
       interests: interests,
-      focusArea: 'genetics',
+      focusArea: 'comprehensive_genetics',
+      learningStyle: 'adaptive',
       createdAt: new Date().toISOString(),
-      lastInteraction: new Date().toISOString()
+      lastInteraction: new Date().toISOString(),
+      progress: {
+        conceptsMastered: 0,
+        topicsExplored: [],
+        assessmentScore: 0
+      }
     };
     
     res.json(newSession);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to initialize session' });
+    res.status(500).json({ 
+      error: 'Failed to initialize session',
+      fallbackSession: {
+        id: 'fallback-' + Date.now(),
+        knowledgeLevel: 3,
+        conversationHistory: []
+      }
+    });
   }
 });
 
-// Simple progress endpoint
+// Enhanced progress endpoint
 app.get('/api/progress/:userId', (req, res) => {
   try {
     const userId = req.params.userId;
@@ -221,28 +286,59 @@ app.get('/api/progress/:userId', (req, res) => {
       userId: userId,
       conceptsMastered: memories.knownConcepts.length,
       totalInteractions: memories.recentConversations.length,
-      estimatedLevel: memories.knownConcepts.length > 3 ? 'Intermediate' : 'Beginner'
+      estimatedLevel: memories.knownConcepts.length > 8 ? 'Advanced' : 
+                     memories.knownConcepts.length > 4 ? 'Intermediate' : 'Beginner',
+      strongAreas: memories.knownConcepts.slice(0, 3),
+      learningStreak: learningEngine.calculateLearningStreak(userId)
     };
     
     res.json(progress);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to get progress' });
+    res.status(500).json({ 
+      error: 'Failed to get progress',
+      estimatedLevel: 'Beginner'
+    });
+  }
+});
+
+// Enhanced knowledge base endpoint
+app.get('/api/knowledge/topics', (req, res) => {
+  try {
+    const topics = learningEngine.getAllTopics();
+    res.json({
+      topics: topics,
+      totalConcepts: topics.length,
+      categories: ['Molecular Genetics', 'Genomics', 'Biotechnology', 'Evolutionary Genetics']
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Failed to retrieve topics',
+      topics: ['DNA Structure', 'Gene Expression', 'Genetic Variation', 'Molecular Techniques']
+    });
   }
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    service: 'Genetics AI Chatbot API',
+    service: 'Advanced Genetics AI Chatbot API',
     status: 'running',
+    version: '2.0.0',
+    capabilities: [
+      'Comprehensive genetics explanations',
+      'Adaptive learning system',
+      'Molecular biology expertise',
+      'Research-level content',
+      'Personalized knowledge paths'
+    ],
     endpoints: [
       'GET /api/health',
       'POST /api/chat',
       'POST /api/init-session',
       'GET /api/memory/:userId',
-      'GET /api/progress/:userId'
-    ],
-    documentation: 'See /api/health for service status'
+      'GET /api/progress/:userId',
+      'GET /api/knowledge/topics'
+    ]
   });
 });
 
@@ -253,7 +349,8 @@ app.use('*', (req, res) => {
     availableEndpoints: [
       '/api/health',
       '/api/chat',
-      '/api/init-session'
+      '/api/init-session',
+      '/api/knowledge/topics'
     ]
   });
 });
@@ -263,17 +360,28 @@ app.use((error, req, res, next) => {
   console.error('Global error handler:', error);
   res.status(500).json({
     error: 'Internal server error',
-    message: 'The genetics chatbot encountered an unexpected error'
+    message: 'The advanced genetics chatbot encountered an unexpected error',
+    support: 'Please try your question again or rephrase it.'
   });
 });
 
-// Start server with error handling
-const server = app.listen(PORT, () => {
-  console.log(`Genetics AI Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
+// Start server with enhanced error handling
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Advanced Genetics AI Server running on port ${PORT}`);
+  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🔬 Service: Comprehensive Genetics Knowledge Base`);
+  console.log(`💡 Version: 2.0.0 - Enhanced Molecular Biology`);
 }).on('error', (err) => {
-  console.error('Server failed to start:', err);
-  process.exit(1);
+  console.error('❌ Server failed to start:', err);
+  // Try alternative port
+  if (err.code === 'EADDRINUSE') {
+    console.log(`⚠️  Port ${PORT} busy, trying ${Number(PORT) + 1}`);
+    app.listen(Number(PORT) + 1, '0.0.0.0', () => {
+      console.log(`🚀 Server started on alternative port ${Number(PORT) + 1}`);
+    });
+  } else {
+    process.exit(1);
+  }
 });
 
 // Graceful shutdown
