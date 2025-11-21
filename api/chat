@@ -1,4 +1,4 @@
-// Enhanced Memory System (REPLACE existing memory code)
+// Enhanced Memory System
 class EnhancedMemory {
   constructor() {
     this.conversationMemory = new Map();
@@ -60,7 +60,7 @@ class EnhancedMemory {
   }
 }
 
-// Adaptive Learning Engine (REPLACE existing learning code)
+// Adaptive Learning Engine
 class AdaptiveLearningEngine {
   constructor() {
     this.knowledgeGraph = new Map();
@@ -92,6 +92,12 @@ class AdaptiveLearningEngine {
         prerequisites: ['dna_structure'],
         difficulty: 'beginner',
         related: ['codon', 'amino_acid']
+      },
+      'gene_expression': {
+        name: 'Gene Expression',
+        prerequisites: ['transcription', 'translation'],
+        difficulty: 'advanced',
+        related: ['regulation', 'epigenetics']
       }
     };
 
@@ -99,7 +105,8 @@ class AdaptiveLearningEngine {
   }
 
   assessKnowledgeLevel(userSession, currentMessage) {
-    const { conversationHistory, knowledgeLevel } = userSession;
+    const conversationHistory = userSession.conversationHistory || [];
+    const knowledgeLevel = userSession.knowledgeLevel || 3;
     
     const understandingScore = this.analyzeUnderstanding(conversationHistory);
     const questionComplexity = this.analyzeQuestionComplexity(currentMessage);
@@ -117,33 +124,51 @@ class AdaptiveLearningEngine {
   personalizeExplanation(concept, knowledgeLevel) {
     const explanations = {
       'dna_structure': {
-        1: "DNA is like a twisted ladder with four chemical letters: A, T, C, G.",
-        3: "DNA has a double-helix structure with complementary base pairing: A-T and C-G.",
-        5: "The DNA double helix features major and minor grooves, with anti-parallel strands running 5' to 3' and 3' to 5'."
+        1: "DNA is like a twisted ladder with four chemical letters: A, T, C, G that carry genetic information.",
+        2: "DNA has a double-helix structure where A pairs with T and C pairs with G through hydrogen bonds.",
+        3: "The DNA double helix features complementary base pairing with anti-parallel strands running 5' to 3'.",
+        4: "DNA structure includes major and minor grooves, with base stacking providing stability to the helix.",
+        5: "The B-form DNA double helix has 10.5 base pairs per turn, with specific groove dimensions that facilitate protein binding."
       },
       'transcription': {
-        1: "Transcription copies DNA into mRNA so it can leave the nucleus.",
-        3: "RNA polymerase binds to promoter regions and synthesizes mRNA complementary to the template strand.",
-        5: "Transcription involves initiation at promoter elements, elongation with NTP addition, and termination at specific sequences."
+        1: "Transcription copies DNA into mRNA so the genetic message can leave the nucleus.",
+        2: "RNA polymerase reads the DNA template and builds mRNA using complementary base pairing.",
+        3: "Transcription involves initiation at promoter regions, elongation by RNA polymerase, and termination at specific sequences.",
+        4: "Eukaryotic transcription requires transcription factors and results in pre-mRNA that undergoes processing.",
+        5: "Transcription regulation involves enhancers, silencers, and chromatin remodeling complexes that control gene expression timing."
+      },
+      'translation': {
+        1: "Translation reads mRNA to build proteins using the genetic code.",
+        2: "Ribosomes match tRNA anticodons to mRNA codons to assemble amino acids into proteins.",
+        3: "Translation occurs in initiation, elongation, and termination phases with specific factors at each stage.",
+        4: "The process involves codon-anticodon recognition, peptidyl transferase activity, and ribosomal translocation.",
+        5: "Translation regulation includes initiation factor phosphorylation, miRNA targeting, and ribosomal frameshifting mechanisms."
+      },
+      'genetic_code': {
+        1: "The genetic code is how DNA instructions are read to make proteins.",
+        2: "Three DNA letters (codon) specify one amino acid in the genetic code.",
+        3: "The genetic code is degenerate, universal, and non-overlapping with start and stop signals.",
+        4: "64 possible codons encode 20 amino acids with wobble base pairing in the third position.",
+        5: "The genetic code exhibits context-dependent decoding and near-universality with minor variations in mitochondria."
       }
     };
 
     const level = Math.min(5, Math.max(1, Math.round(knowledgeLevel)));
-    return explanations[concept]?.[level] || explanations[concept]?.[3] || "Explanation not available.";
+    return explanations[concept]?.[level] || `I'll explain ${concept} at your knowledge level (${level}/5).`;
   }
 
   analyzeUnderstanding(conversationHistory) {
     let score = 0.5;
     const recentMessages = conversationHistory.slice(-10);
-    const confusionIndicators = ['confused', 'don\'t understand', 'what does', 'explain again'];
-    const understandingIndicators = ['I see', 'that makes sense', 'understood', 'thanks for explaining'];
+    const confusionIndicators = ['confused', 'don\'t understand', 'what does', 'explain again', '?', 'how come'];
+    const understandingIndicators = ['I see', 'that makes sense', 'understood', 'thanks', 'clear', 'got it'];
     
     const confusionCount = recentMessages.filter(msg => 
-      confusionIndicators.some(indicator => msg.message.toLowerCase().includes(indicator))
+      confusionIndicators.some(indicator => msg.message?.toLowerCase().includes(indicator))
     ).length;
     
     const understandingCount = recentMessages.filter(msg => 
-      understandingIndicators.some(indicator => msg.message.toLowerCase().includes(indicator))
+      understandingIndicators.some(indicator => msg.message?.toLowerCase().includes(indicator))
     ).length;
     
     score += (understandingCount - confusionCount) * 0.1;
@@ -151,8 +176,8 @@ class AdaptiveLearningEngine {
   }
 
   analyzeQuestionComplexity(question) {
-    const beginnerKeywords = ['what is', 'basic', 'simple'];
-    const advancedKeywords = ['mechanism', 'regulation', 'specific', 'detailed'];
+    const beginnerKeywords = ['what is', 'basic', 'simple', 'define'];
+    const advancedKeywords = ['mechanism', 'regulation', 'specific', 'detailed', 'how does', 'why does'];
     
     if (advancedKeywords.some(keyword => question.toLowerCase().includes(keyword))) {
       return 'high';
@@ -161,84 +186,160 @@ class AdaptiveLearningEngine {
     }
     return 'medium';
   }
+
+  getSuggestedConcepts(currentConcept, knowledgeLevel) {
+    const concept = this.knowledgeGraph.get(currentConcept);
+    if (!concept) return [];
+    
+    return concept.related.slice(0, Math.max(2, Math.floor(knowledgeLevel)));
+  }
 }
 
-// Initialize systems (REPLACE existing initializations)
-const memorySystem = new EnhancedMemory();
-const learningEngine = new AdaptiveLearningEngine();
+// Reasoning Engine
+class ReasoningEngine {
+  constructor() {
+    this.factBase = this.initializeFactBase();
+  }
 
-// ENHANCED Chat endpoint (REPLACE your existing /api/chat endpoint)
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { message, userSession } = req.body;
-    
-    // Update knowledge level based on current interaction
-    const updatedKnowledgeLevel = learningEngine.assessKnowledgeLevel(userSession, message);
-    
-    // Store conversation in memory
-    memorySystem.storeConversation(userSession.id, message, "Processing...", new Date());
-    
-    // Get relevant memories for context
-    const relevantMemories = memorySystem.getRelevantMemories(userSession.id, message);
-    
-    // Generate personalized response
-    const response = await generateEnhancedResponse(message, userSession, relevantMemories);
-    
-    // Learn concepts from this interaction
-    memorySystem.learnConcept(userSession.id, 'molecular_genetics', 0.5);
-    
-    // Update user session
-    const updatedSession = {
-      ...userSession,
-      knowledgeLevel: updatedKnowledgeLevel,
-      lastInteraction: new Date().toISOString()
+  initializeFactBase() {
+    return {
+      'dna_replication': {
+        description: 'Process of DNA copying',
+        steps: ['initiation', 'elongation', 'termination'],
+        enzymes: ['DNA polymerase', 'helicase', 'ligase'],
+        concept: 'dna_structure'
+      },
+      'central_dogma': {
+        description: 'DNA → RNA → Protein',
+        processes: ['replication', 'transcription', 'translation'],
+        concept: 'gene_expression'
+      },
+      'protein_synthesis': {
+        description: 'Process of creating proteins from DNA instructions',
+        steps: ['transcription', 'translation'],
+        concept: 'translation'
+      },
+      'gene_regulation': {
+        description: 'Control of gene expression',
+        mechanisms: ['transcriptional', 'post-transcriptional', 'translational', 'post-translational'],
+        concept: 'gene_expression'
+      }
     };
-    
-    res.json({
-      response: response,
-      updatedSession: updatedSession,
-      suggestedQuestions: [
-        "Can you explain the central dogma?",
-        "What's the difference between DNA and RNA?",
-        "How does protein synthesis work?"
-      ]
-    });
-    
-  } catch (error) {
-    console.error('Enhanced chat error:', error);
-    res.status(500).json({ error: 'Internal server error' });
   }
-});
 
-// NEW Memory endpoints (ADD these)
-app.get('/api/memory/:userId', (req, res) => {
-  const userId = req.params.userId;
-  const memories = memorySystem.getRelevantMemories(userId, "");
-  res.json(memories);
-});
+  async generateReasonedResponse(message, context, userSession) {
+    // Step 1: Analyze query intent
+    const intent = this.analyzeIntent(message);
+    
+    // Step 2: Retrieve relevant facts
+    const relevantFacts = this.retrieveRelevantFacts(message, context);
+    
+    // Step 3: Generate reasoning chain
+    const reasoningSteps = this.buildReasoningChain(message, relevantFacts, userSession, intent);
+    
+    // Step 4: Formulate response
+    const answer = this.formulateAnswer(message, reasoningSteps, userSession.knowledgeLevel, relevantFacts);
+    
+    return {
+      answer: answer,
+      reasoning: reasoningSteps,
+      conceptsUsed: relevantFacts.map(fact => fact.concept),
+      intent: intent
+    };
+  }
 
-app.delete('/api/memory/:userId', (req, res) => {
-  const userId = req.params.userId;
-  // In a real implementation, you'd clear the memories
-  res.json({ message: 'Memory cleared for user ' + userId });
-});
+  analyzeIntent(message) {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('how') || lowerMessage.includes('process') || lowerMessage.includes('steps')) {
+      return 'process_explanation';
+    } else if (lowerMessage.includes('difference between') || lowerMessage.includes('compare')) {
+      return 'comparison';
+    } else if (lowerMessage.includes('why') || lowerMessage.includes('reason')) {
+      return 'reasoning';
+    } else if (lowerMessage.includes('what is') || lowerMessage.includes('define')) {
+      return 'definition';
+    } else if (lowerMessage.includes('example') || lowerMessage.includes('instance')) {
+      return 'example';
+    } else {
+      return 'general_information';
+    }
+  }
 
-// Helper function for enhanced responses
-async function generateEnhancedResponse(message, userSession, memories) {
-  const lowerMessage = message.toLowerCase();
-  
-  // Use learning level to personalize response
-  const knowledgeLevel = userSession.knowledgeLevel;
-  
-  if (lowerMessage.includes('dna') && lowerMessage.includes('structure')) {
-    return learningEngine.personalizeExplanation('dna_structure', knowledgeLevel);
-  } else if (lowerMessage.includes('transcription')) {
-    return learningEngine.personalizeExplanation('transcription', knowledgeLevel);
-  } else if (lowerMessage.includes('translation')) {
-    return learningEngine.personalizeExplanation('translation', knowledgeLevel);
-  } else if (lowerMessage.includes('genetic code')) {
-    return learningEngine.personalizeExplanation('genetic_code', knowledgeLevel);
-  } else {
-    return `Based on your current knowledge level (${knowledgeLevel.toFixed(1)}/5), I'd be happy to explain molecular genetics concepts. What specific topic are you interested in?`;
+  buildReasoningChain(question, facts, userSession, intent) {
+    const steps = [];
+    
+    steps.push(`User question: "${question}"`);
+    steps.push(`Detected intent: ${intent}`);
+    steps.push(`User knowledge level: ${userSession.knowledgeLevel.toFixed(1)}/5`);
+    
+    if (facts.length > 0) {
+      steps.push(`Found ${facts.length} relevant facts:`);
+      facts.forEach((fact, index) => {
+        steps.push(`- ${fact.description}`);
+      });
+    } else {
+      steps.push(`No specific facts found, using general knowledge`);
+    }
+    
+    steps.push(`Adapting explanation complexity for knowledge level ${Math.round(userSession.knowledgeLevel)}`);
+    
+    return steps;
+  }
+
+  formulateAnswer(question, reasoningSteps, knowledgeLevel, relevantFacts) {
+    const lowerQuestion = question.toLowerCase();
+    
+    // Determine which concept is being asked about
+    let primaryConcept = 'general';
+    if (lowerQuestion.includes('dna') && (lowerQuestion.includes('structure') || lowerQuestion.includes('replication'))) {
+      primaryConcept = 'dna_structure';
+    } else if (lowerQuestion.includes('transcription')) {
+      primaryConcept = 'transcription';
+    } else if (lowerQuestion.includes('translation') || lowerQuestion.includes('protein synthesis')) {
+      primaryConcept = 'translation';
+    } else if (lowerQuestion.includes('genetic code') || lowerQuestion.includes('codon')) {
+      primaryConcept = 'genetic_code';
+    } else if (lowerQuestion.includes('gene') && lowerQuestion.includes('expression')) {
+      primaryConcept = 'gene_expression';
+    }
+    
+    // Use learning engine for personalized response
+    const learningEngine = new AdaptiveLearningEngine();
+    learningEngine.initializeKnowledgeGraph();
+    
+    let response = learningEngine.personalizeExplanation(primaryConcept, knowledgeLevel);
+    
+    // Add context based on intent
+    const intent = this.analyzeIntent(question);
+    if (intent === 'process_explanation' && relevantFacts.length > 0) {
+      const fact = relevantFacts[0];
+      if (fact.steps) {
+        response += `\n\nThe process involves these main steps: ${fact.steps.join(', ')}.`;
+      }
+    } else if (intent === 'comparison') {
+      response += `\n\nWould you like me to compare this with related concepts?`;
+    }
+    
+    return response;
+  }
+
+  retrieveRelevantFacts(message, context) {
+    const keywords = message.toLowerCase().split(' ');
+    const relevantFacts = [];
+    
+    for (const [concept, fact] of Object.entries(this.factBase)) {
+      const factText = JSON.stringify(fact).toLowerCase();
+      if (keywords.some(keyword => 
+        factText.includes(keyword) ||
+        concept.includes(keyword)
+      )) {
+        relevantFacts.push({ concept, ...fact });
+      }
+    }
+    
+    return relevantFacts;
   }
 }
+
+module.exports = { EnhancedMemory, AdaptiveLearningEngine, ReasoningEngine };
